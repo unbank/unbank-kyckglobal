@@ -1,0 +1,154 @@
+<?php
+
+namespace Unbank\Kyckglobal;
+
+use Illuminate\Support\Facades\Http;
+
+class KyckGlobalAPI  {
+
+    protected $api_url;
+    protected $auth_data;
+    protected $password;
+    protected $payer_id;
+    protected $payer_name;
+    protected $token;
+    protected $username;
+
+    public function __construct(string $username, string $password,
+                                string $api_url="https://sandboxapi.kyckglobal.com",
+                                string $payer_name='', string $payer_id='', $auth=true) {
+        $this->username = $username;
+        $this->password = $password;
+        $this->api_url = $api_url;
+        $this->payer_name = $payer_name;
+        $this->payer_id = $payer_id;
+        if ( $auth ) {
+            $this->auth();
+        }
+    }
+
+
+    /**
+     * KyckGlobal Authentication
+     *
+     * @return boolean
+     */
+    public function auth() {
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json'
+        ])->post("$this->api_url/apis/userAuth", [
+            'email' => $this->username,
+            'password' => $this->password
+        ]);
+
+        $this->auth_data = $response->json();
+        $this->token = $this->auth_data['token'];
+
+        return $this->auth_data['success'];
+    }
+
+
+    /**
+     * Create Payee
+     *
+     * @param \App\Models\User $user
+     * @return array   Return Payee object if use is registered, else false;
+     */
+    public function createPayee($user) {
+        $payeeData = $user->getKyckRegistrationData();
+
+        $payeeData["payerId"] = $this->payer_id;
+        $payeeData["payerLegalName"] = $this->payer_name;
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->post("$this->api_url/apis/singlePayeeCreatingAPI", $payeeData);
+
+        $result = $response->json();
+        if ( $result['success'] != 'true' ) {
+            return [
+                false,
+                $result
+            ];
+        }
+
+        $payee = Payee::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                "payee_id" => $result["payeeId"],
+                "data" => $result,
+                "service_provider" => 'kyck',
+                "is_active" => 1,
+                "verified" => 1
+            ]
+        );
+        return [
+            true,
+            $payee
+        ];
+    }
+
+
+    public function getPayees() {
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->get("$this->api_url/apis/fetchPayeesOfPayer/$this->payer_id")
+            ->json();
+        return $response['data']['Items'];
+    }
+
+    public function createAccountsForPayees( array $payees ) {
+        foreach($payees as $payee) {
+            $payee_email = $payee["payeeEmail"];
+            $payee_name = $payee["payeeName"];
+        }
+    }
+
+    /**
+     * Get Cash Out ATM Locations within the given radius in miles based on the given cordinates
+     *
+     * @example KyckGlobal::getCashOutATMLocations(28.66207, -81.381724, 25)
+     *
+     * @param float $latitude
+     * @param float $longitude
+     * @param integer $distance
+     * @return void
+     */
+    public function getCashOutATMLocations(float $latitude, float $longitude, int $distance=25) {
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+          CURLOPT_URL => "$this->api_url/apis/GetCashOutAtmLocations",
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_ENCODING => '',
+          CURLOPT_MAXREDIRS => 10,
+          CURLOPT_TIMEOUT => 0,
+          CURLOPT_FOLLOWLOCATION => true,
+          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+          CURLOPT_CUSTOMREQUEST => 'POST',
+          CURLOPT_POSTFIELDS =>'{
+            "lattitude" : '.$latitude.',
+            "longitude" : '.$longitude.',
+            "records": 30,
+            "dblDistance": '.$distance.'
+            }',
+          CURLOPT_HTTPHEADER => array(
+            'Authorization: '.$this->token,
+            'Content-Type: application/json',
+            // 'Cookie: AWSALB=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b; AWSALBCORS=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b'
+          ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        $data = json_decode($response, true);
+        return $data;
+    }
+
+}
+
+?>
