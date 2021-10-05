@@ -7,6 +7,21 @@ use Osoobe\Utilities\Helpers\Utilities;
 
 trait KyckPayeeTrait {
 
+
+    /**
+     * Get all of the payees for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function payees(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany('Unbank\Kyckglobal\Payee', 'user_id', 'id');
+    }
+
+    public function kyck() {
+        return $this->payees->where('service_provider', 'kyck')->first();
+    }
+
     /**
      * Get the user that owns the KyckTrait
      *

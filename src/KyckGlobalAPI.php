@@ -4,7 +4,8 @@ namespace Unbank\Kyckglobal;
 
 use Illuminate\Support\Facades\Http;
 
-class KyckGlobalAPI  {
+class KyckGlobalAPI
+{
 
     protected $api_url;
     protected $auth_data;
@@ -14,15 +15,20 @@ class KyckGlobalAPI  {
     protected $token;
     protected $username;
 
-    public function __construct(string $username, string $password,
-                                string $api_url="https://sandboxapi.kyckglobal.com",
-                                string $payer_name='', string $payer_id='', $auth=true) {
+    public function __construct(
+        string $username,
+        string $password,
+        string $api_url = "https://sandboxapi.kyckglobal.com",
+        string $payer_name = '',
+        string $payer_id = '',
+        $auth = true
+    ) {
         $this->username = $username;
         $this->password = $password;
         $this->api_url = $api_url;
         $this->payer_name = $payer_name;
         $this->payer_id = $payer_id;
-        if ( $auth ) {
+        if ($auth) {
             $this->auth();
         }
     }
@@ -33,7 +39,8 @@ class KyckGlobalAPI  {
      *
      * @return boolean
      */
-    public function auth() {
+    public function auth()
+    {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json'
         ])->post("$this->api_url/apis/userAuth", [
@@ -54,7 +61,8 @@ class KyckGlobalAPI  {
      * @param \App\Models\User $user
      * @return array   Return Payee object if use is registered, else false;
      */
-    public function createPayee($user) {
+    public function createPayee($user)
+    {
         $payeeData = $user->getKyckRegistrationData();
 
         $payeeData["payerId"] = $this->payer_id;
@@ -66,7 +74,7 @@ class KyckGlobalAPI  {
         ])->post("$this->api_url/apis/singlePayeeCreatingAPI", $payeeData);
 
         $result = $response->json();
-        if ( $result['success'] != 'true' ) {
+        if ($result['success'] != 'true') {
             return [
                 false,
                 $result
@@ -90,7 +98,8 @@ class KyckGlobalAPI  {
     }
 
 
-    public function getPayees() {
+    public function getPayees()
+    {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $this->token
@@ -99,8 +108,9 @@ class KyckGlobalAPI  {
         return $response['data']['Items'];
     }
 
-    public function createAccountsForPayees( array $payees ) {
-        foreach($payees as $payee) {
+    public function createAccountsForPayees(array $payees)
+    {
+        foreach ($payees as $payee) {
             $payee_email = $payee["payeeEmail"];
             $payee_name = $payee["payeeName"];
         }
@@ -116,30 +126,31 @@ class KyckGlobalAPI  {
      * @param integer $distance
      * @return void
      */
-    public function getCashOutATMLocations(float $latitude, float $longitude, int $distance=25) {
+    public function getCashOutATMLocations(float $latitude, float $longitude, int $distance = 25)
+    {
 
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-          CURLOPT_URL => "$this->api_url/apis/GetCashOutAtmLocations",
-          CURLOPT_RETURNTRANSFER => true,
-          CURLOPT_ENCODING => '',
-          CURLOPT_MAXREDIRS => 10,
-          CURLOPT_TIMEOUT => 0,
-          CURLOPT_FOLLOWLOCATION => true,
-          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-          CURLOPT_CUSTOMREQUEST => 'POST',
-          CURLOPT_POSTFIELDS =>'{
-            "lattitude" : '.$latitude.',
-            "longitude" : '.$longitude.',
+            CURLOPT_URL => "$this->api_url/apis/GetCashOutAtmLocations",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => '{
+            "lattitude" : ' . $latitude . ',
+            "longitude" : ' . $longitude . ',
             "records": 30,
-            "dblDistance": '.$distance.'
+            "dblDistance": ' . $distance . '
             }',
-          CURLOPT_HTTPHEADER => array(
-            'Authorization: '.$this->token,
-            'Content-Type: application/json',
-            // 'Cookie: AWSALB=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b; AWSALBCORS=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b'
-          ),
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: ' . $this->token,
+                'Content-Type: application/json',
+                // 'Cookie: AWSALB=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b; AWSALBCORS=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b'
+            ),
         ));
 
         $response = curl_exec($curl);
@@ -149,6 +160,104 @@ class KyckGlobalAPI  {
         return $data;
     }
 
-}
+    public function sendPostRequest($path, $data, $method)
+    {
 
-?>
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "$this->api_url/$path",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Authorization: ' . $this->token
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        $data = json_decode($response, true);
+        return $data;
+    }
+
+    public function sendGetRequest($path) {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => "$this->api_url/$path",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_HTTPHEADER => array(
+            'Authorization: ' . $this->token
+        ),
+        ));
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $data = json_decode($response, true);
+        return $data;
+    }
+
+
+    public function makePayments(array $payemnts)
+    {
+        $data = [
+            'payerId' => $this->payer_id,
+            'payments' => $payemnts
+        ];
+        $data_str = json_encode($data);
+        $response = $this->sendPostRequest('apis/bulkPaymentByJSON', $data_str, 'POST');
+        return $response;
+    }
+
+
+    /**
+     * Get Payments - Get by Payer Id
+     *
+     * The Get All Payments by Payer ID operation returns a list of all of the payments ever made by a
+     * specified Payer. Send a GET request to the /getAllPayments endpoint with the Organization ID
+     * as the last element in the URL, as shown in the example below:
+     *
+     * https://sandboxapi.kyckglobal.com/apis/getAllPayments/{{organizationId}}
+     *
+     * @return array                    Returns the json response for the KyckGlobal API Endpoint.
+     */
+    public function getPayerPayments(): array {
+            $data = $this->sendGetRequest("apis/getAllPayments/$this->payer_id");
+            return $data;
+    }
+
+
+    /**
+     * Get Payments - Get Pay Statement
+     *
+     * The Get Pay Statement Information operation returns pay stub data for the specified payment.
+     * Send a GET request to the /getPayStub endpoint with the payment's reference ID as the last
+     * element in the URL, as shown in the example below:
+     *
+     * https://sandboxapi.kyckglobal.com/apis/getPayStub/{{paymentReferenceId}}
+     *
+     * @param string $reference_id
+     * @return array                    Returns the json response for the KyckGlobal API Endpoint.
+     */
+    public function getPaymentStatement(string $reference_id): array {
+        $data = $this->sendGetRequest("apis/getPayStub/$reference_id");
+        return $data;
+    }
+
+    public function cancelPayment($reference_id) {
+        $data = $this->sendGetRequest("apis/cancelPayment/$reference_id");
+        return $data;
+    }
+}
