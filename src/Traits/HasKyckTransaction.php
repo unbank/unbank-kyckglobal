@@ -10,48 +10,158 @@ use Unbank\Kyckglobal\Facades\KyckGlobal;
 
 trait HasKyckTransaction {
 
+    /**
+     * Boot function whenever a change is made to the model.
+     *
+     * @return void
+     */
+    public static function bootHasKyckTransaction()
+    {
+        $expiry_trigger = ['kyck'];
+        $expire_in_hours = config('kyckglobal.expire_in_hours', 72);
+        static::creating(function($item) use($expiry_trigger, $expire_in_hours) {
+            if ( !empty($item->transfer_date) && empty($item->expiry_date) && in_array($item->service_provider, $expiry_trigger) ) {
+                $item->expiry_date = $item->transfer_date->copy()
+                    ->addHours($expire_in_hours);
+            }
+        });
+    }
+
+    /**
+     * Scope a query to only include kyck transactions.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function scopeKyck($query) {
         return $query->where('service_provider', 'kyck');
     }
 
+    /**
+     * Scope a query to only exclude rejected transactions
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function scopeNotRejected($query) {
         return $query->where('status', '!=', 'Rejected');
     }
 
+
+    /**
+     * Scope a query to only exclude transactions returned by Kyck
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function scopeNotReturned($query) {
         return $query->where('status', '!=', 'Returned');
     }
 
+    /**
+     * Scope a query to only include transactions that are Ready to be picked up
+     * at a Kyck Location
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function scopePickupReady($query) {
         return $query->where('status', 'Pickup Ready');
     }
 
-    public function getExpiryDateAttribute() {
-        return $this->transfer_date->copy()->addDays(
-            config('kyckglobal.expires_in_days', 3)
-        );
-    }
-
+    /**
+     * Get expiry date timestamp for JavaScript
+     *
+     * @example $transaction->expiry_js_date
+     * @return string
+     */
     public function getExpiryJsDateAttribute() {
         return $this->expiry_date->format('m-d-Y')." 23:59:59";
     }
 
+    /**
+     * Get transfer date timestamp for JavaScript
+     *
+     * @example $transaction->transfer_js_date
+     * @return string
+     */
     public function getTransferJsDateAttribute() {
         return $this->transfer_date->format('m-d-Y')." 23:59:59";
     }
 
+    /**
+     * Get the difference between the transfer and expiry dates in hours
+     *
+     * @return mixed
+     */
     public function pickupExpirationHours() {
-        return $this->transfer_date->diffInHours($this->expiry_date);
+        try {
+            return $this->transfer_date->diffInHours($this->expiry_date);
+        } catch (\Throwable $th) {
+            return null;
+        }
     }
 
+    /**
+     * Get the pickup expiry time left in hours
+     *
+     * @return mixed
+     */
     public function expiresInHours() {
-        return Carbon::now()->diffInHours($this->expiry_date);
+        $now = Carbon::now();
+        try {
+            if ( $now <= $this->expiry_date ) {
+                return $now->diffInHours($this->expiry_date);
+            }
+            return 0;
+        } catch (\Throwable $th) {
+            return 0;
+        }
     }
 
+    /**
+     * Get the pickup expiry time left in minutes
+     *
+     * @return mixed
+     */
+    public function expiresInMinutes() {
+        $now = Carbon::now();
+        try {
+            if ( $now <= $this->expiry_date ) {
+                return $now->diffInMinutes($this->expiry_date);
+            }
+            return 0;
+        } catch (\Throwable $th) {
+            return 0;
+        }
+    }
+
+    /**
+     * Get the pickup expiry time left in seconds
+     *
+     * @return mixed
+     */
+    public function expiresInSeconds() {
+        $now = Carbon::now();
+        try {
+            if ( $now <= $this->expiry_date ) {
+                return $now->diffInSeconds($this->expiry_date);
+            }
+            return 0;
+        } catch (\Throwable $th) {
+            return 0;
+        }
+    }
+
+    /**
+     * Get the expiration progress
+     *
+     * @return int
+     */
     public function expiration_progress() {
         $diff_start = $this->pickupExpirationHours();
         $diff_now = $this->expiresInHours();
-        return (int) ( ( ($diff_start - $diff_now) / $diff_start ) * 100 );
+        return intval( ( ($diff_start - $diff_now) / $diff_start ) * 100 );
     }
 
     /**
@@ -105,6 +215,12 @@ trait HasKyckTransaction {
         );
     }
 
+    /**
+     * Trigger kyck status event
+     *
+     * @param string $status
+     * @return bool
+     */
     public function triggerKyckStatusEvent($status) {
         $transaction = $this;
         if ( $this->status == $status || $this->isRejected() ) {
@@ -173,6 +289,11 @@ trait HasKyckTransaction {
         );
     }
 
+    /**
+     * Create kyck payment object to be sent to the kyck server.
+     *
+     * @return array
+     */
     public function kyck_payment() {
         $data = [
             'payeeDetails' => array(
@@ -202,10 +323,20 @@ trait HasKyckTransaction {
         return $data;
     }
 
+    /**
+     * Generate transaction number
+     *
+     * @return string
+     */
     public static function generateTransactionNumber() {
         return "UNBT".Str::random(3)."0".static::count();
     }
 
+    /**
+     * Get cash code from Kyck
+     *
+     * @return string
+     */
     public function getCashCode() {
         if ( !empty($this->pickup_cash_code)) {
             return $this->pickup_cash_code;
@@ -221,6 +352,13 @@ trait HasKyckTransaction {
         }
     }
 
+    /**
+     * Update the transaction data from Kyck statement response
+     *
+     * @param array $data
+     * @param boolean $save
+     * @return bool
+     */
     public function updateFromKyckStatement(array $data, bool $save=true) {
         if ( $data['success'] && !empty($data['payStub'])) {
             $this->data = $data;
@@ -245,6 +383,13 @@ trait HasKyckTransaction {
         return false;
     }
 
+    /**
+     * Update the transaction data from Kyck response
+     *
+     * @param array $data
+     * @param boolean $save
+     * @return bool
+     */
     public function updateFromKyckResponse($data, $save=true) {
         $this->data = $data;
         if ( $data['success'] && !empty($data['accept'])) {
@@ -262,6 +407,12 @@ trait HasKyckTransaction {
         }
     }
 
+    /**
+     * Mark transaction as cannceled
+     *
+     * @param boolean $save
+     * @return void
+     */
     public function cancelPayment($save=false) {
         $this->status = "Rejected";
         $this->is_active = 0;
