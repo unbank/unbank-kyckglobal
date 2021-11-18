@@ -210,8 +210,7 @@ class KyckGlobalAPI
     }
 
 
-    public function makePayments(array $payemnts)
-    {
+    public function makePayments(array $payemnts) {
         $data = [
             'payerId' => $this->payer_id,
             'payments' => $payemnts
