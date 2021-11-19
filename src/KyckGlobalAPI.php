@@ -49,6 +49,10 @@ class KyckGlobalAPI
         ]);
 
         $this->auth_data = $response->json();
+        // dd($this->auth_data, [
+        //     'email' => $this->username,
+        //     'password' => $this->password
+        // ]);
         $this->token = $this->auth_data['token'];
 
         return $this->auth_data['success'];
