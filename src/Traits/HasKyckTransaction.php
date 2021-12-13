@@ -170,15 +170,12 @@ trait HasKyckTransaction {
      * @return string
      */
     public function getKyckStatusMessageAttribute(): string {
+
         $status_slug = Str::slug($this->status);
         try {
             $message = __('twilio.kyck_statuses.'.$status_slug);
             if ( !empty($this->kyck_reference_id) ) {
-                // return $message." ".route(
-                //     'transaction.pickup'
-                // );
-                // return "Hello"
-                return "$message https://demo.unbanked.world/pickupready";
+                return "$message ".config('kyckglobal.pickup_ready');
             }
             return $message;
 
