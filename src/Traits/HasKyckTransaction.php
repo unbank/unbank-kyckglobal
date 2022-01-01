@@ -21,8 +21,8 @@ trait HasKyckTransaction {
         $expire_in_hours = config('kyckglobal.expire_in_hours', 72);
         static::creating(function($item) use($expiry_trigger, $expire_in_hours) {
             if ( !empty($item->transfer_date) && empty($item->expiry_date) && in_array($item->service_provider, $expiry_trigger) ) {
-                $item->expiry_date = $item->transfer_date->copy()
-                    ->addHours($expire_in_hours);
+                $item->expiry_date = $item->transfer_date->copy();
+                    // ->addHours($expire_in_hours);
             }
         });
     }
