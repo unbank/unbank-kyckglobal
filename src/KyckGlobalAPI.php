@@ -12,7 +12,7 @@ class KyckGlobalAPI
     protected $password;
     protected $payer_id;
     protected $payer_name;
-    protected $token;
+    protected $token = '';
     protected $username;
 
     public function __construct(
@@ -49,13 +49,16 @@ class KyckGlobalAPI
         ]);
 
         $this->auth_data = $response->json();
-        // dd($this->auth_data, [
-        //     'email' => $this->username,
-        //     'password' => $this->password
-        // ]);
-        $this->token = $this->auth_data['token'];
-
-        return $this->auth_data['success'];
+        try {
+            if ( $this->auth_data['success'] ) {
+                $this->token = $this->auth_data['token'];
+            }
+            $status = $this->auth_data['success'];
+        } catch (\Throwable $th) {
+            //throw $th;
+            $status = false;
+        }
+        return $status;
     }
 
 
