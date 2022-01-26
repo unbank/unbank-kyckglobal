@@ -3,6 +3,7 @@
 namespace Unbank\Kyckglobal;
 
 use Illuminate\Support\Facades\Http;
+use Osoobe\Utilities\Helpers\Utilities;
 
 class KyckGlobalAPI
 {
@@ -105,6 +106,11 @@ class KyckGlobalAPI
     }
 
 
+    /**
+     * Get payees
+     *
+     * @return array
+     */
     public function getPayees()
     {
         $response = Http::withHeaders([
@@ -112,7 +118,10 @@ class KyckGlobalAPI
             'Authorization' => $this->token
         ])->get("$this->api_url/apis/fetchPayeesOfPayer/$this->payer_id")
             ->json();
-        return $response['data']['Items'];
+        if ( !empty($response['data']) ) {
+            return Utilities::getArrayValue($response['data'], 'Items', []);
+        }
+        return [];
     }
 
     public function createAccountsForPayees(array $payees)
@@ -121,6 +130,48 @@ class KyckGlobalAPI
             $payee_email = $payee["payeeEmail"];
             $payee_name = $payee["payeeName"];
         }
+    }
+
+    /**
+     * Get Cash Out ATM Locations within the given radius in miles based on the given cordinates
+     *
+     * @example KyckGlobal::getZipCodeCashOutATMLocations("11530", 25)
+     *
+     * @param string $zipCode
+     * @param integer $distance
+     * @return void
+     */
+    public function getZipCodeCashOutATMLocations(string $zipCode, int $distance = 25)
+    {
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "$this->api_url/apis/GetCashOutAtmLocations",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => '{
+            "postalCode" : "'.$zipCode.'",
+            "records": 30,
+            "dblDistance": ' . $distance . '
+            }',
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: ' . $this->token,
+                'Content-Type: application/json',
+                // 'Cookie: AWSALB=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b; AWSALBCORS=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        $data = json_decode($response, true);
+        return $data;
     }
 
     /**
