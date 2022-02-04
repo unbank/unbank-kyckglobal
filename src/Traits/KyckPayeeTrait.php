@@ -128,12 +128,10 @@ trait KyckPayeeTrait {
             ),
             'userDisabled' => false,
             'payeeStatus' => ( $this->kyckPayee )?  $this->kyckPayee->status : false,
-            'paymentTypes' =>array (
-                0 => 'ATMPass',
-            ),
-            'atmPass' => array (
-                'atmPassAllocation' => 100,
-            )
+            "paymentTypes" => ["NCRPay360"],
+            "NCRPay360" => [
+                "NCRPay360Allocation" => 100
+            ]
         ];
 
         return $postData;
