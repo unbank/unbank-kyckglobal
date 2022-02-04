@@ -82,6 +82,12 @@ class KyckGlobalAPI
         ])->post("$this->api_url/apis/singlePayeeCreatingAPI", $payeeData);
 
         $result = $response->json();
+        if ( empty($result) ) {
+            return [
+                false,
+                []
+            ];
+        }
         if ($result['success'] != 'true') {
             return [
                 false,

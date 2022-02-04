@@ -5,6 +5,7 @@ namespace Unbank\Kyckglobal\Traits;
 use App\Events\PickupReady;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Osoobe\Laravel\Settings\Models\AppMeta;
 use Osoobe\Utilities\Helpers\Str;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
 
@@ -398,14 +399,13 @@ trait HasKyckTransaction {
             $this->kyck_reference_Id = $data['accept'][0]["paymentDetails"][0]["Reference_ID"];
             $this->payment_method = $data['accept'][0]["paymentDetails"][0]["payeePaymentMethod"];
         }
-
         if ( $save ) {
             $this->save();
         }
     }
 
     /**
-     * Mark transaction as cannceled
+     * Mark transaction as canceled
      *
      * @param boolean $save
      * @return void
@@ -416,6 +416,45 @@ trait HasKyckTransaction {
         if ( $save ) {
             $this->save();
         }
+    }
+
+
+    /**
+     * Get the next available transfer date
+     *
+     * @param Carbon $date
+     * @return Carbon
+     */
+    public static function nextTransferDate(Carbon $date=null) {
+        if ( empty($date) ) {
+            $date = Carbon::now();
+        }
+
+        $transfer_date = $date->copy();
+        if ( in_array($transfer_date->shortEnglishDayOfWeek, ['Thur', 'Fri', 'Sat', 'Sun']) ) {
+            $transfer_date->addDays(
+                AppMeta::getMetaOrConfig('services.kyck.num_days_to_transfer', 2) + 2
+            );
+        } else {
+            $transfer_date = $transfer_date->addDays(
+                AppMeta::getMetaOrConfig('services.kyck.num_days_to_transfer', 2)
+            );
+        }
+
+        $isNextDay = false;
+        try {
+            if ( ! $transfer_date->isOpen() ) {
+                $$transfer_date = $transfer_date->nextOpen();
+                $isNextDay = true;
+            }
+        } catch (\Throwable $th) {
+            $isNextDay = false;
+        }
+
+        if ( $isNextDay ) {
+            $transfer_date->hour = 11;
+        }
+        return $transfer_date;
     }
 
 
