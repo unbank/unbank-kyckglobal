@@ -128,9 +128,9 @@ trait KyckPayeeTrait {
             ),
             'userDisabled' => false,
             'payeeStatus' => ( $this->kyckPayee )?  $this->kyckPayee->status : false,
-            "paymentTypes" => ["NCRPay360"],
-            "NCRPay360" => [
-                "NCRPay360Allocation" => 100
+            "paymentTypes" => ["NCRpay360"],
+            "ncrPay360" => [
+                "ncrPay360Allocation" => 100
             ]
         ];
 
