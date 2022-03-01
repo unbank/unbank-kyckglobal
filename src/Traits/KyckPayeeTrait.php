@@ -12,11 +12,12 @@ trait KyckPayeeTrait {
     /**
      * Get the payee that owns the KyckPayeeTrait
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function payee(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function payee(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->belongsTo('Unbank\Kyckglobal\Payee', 'user_id');
+        // return $this->belongsTo('Unbank\Kyckglobal\Payee', 'user_id');
+        return $this->hasOne('\Unbank\Kyckglobal\Payee');
     }
 
     public function getOrCreatePayee() {
@@ -73,7 +74,7 @@ trait KyckPayeeTrait {
      */
     public function payees(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany('Unbank\Kyckglobal\Payee', 'user_id');
+        return $this->hasMany('Unbank\Kyckglobal\Payee');
     }
 
 
@@ -135,6 +136,33 @@ trait KyckPayeeTrait {
         ];
 
         return $postData;
+    }
+
+
+    /**
+     * Get data that is used to update the payee account
+     *
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1singlePayeeUpdate/put
+     * @return array
+     */
+    public function getKyckPayeeUpdateData() {
+        return [
+            "payeeId" => $this->payee->payee_id,
+            "payeeFirstName" => $this->firstname,
+            "payeeLastName" => $this->lastname,
+            "contactInfo" => [
+                "mobile" => $this->phone_number,
+                "sendSMS" => false
+            ],
+            "paymentTypes" => [
+                "NCRpay360",
+            ],
+            "ncrPay360" => [
+                "ncrPay360Allocation" => 100
+            ],
+            "ncrPay360Allocation" => 100
+        ];
+
     }
 
 

@@ -112,6 +112,79 @@ class KyckGlobalAPI
     }
 
 
+
+
+    /**
+     * Create Payee
+     *
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1singlePayeeUpdate/put
+     *
+     * @param \App\Models\User $user
+     * @return array   Return Payee object if use is registered, else false;
+     */
+    public function updatePayee($user)
+    {
+        $payeeData = $user->getKyckPayeeUpdateData();
+
+        $payeeData["payerId"] = $this->payer_id;
+        // $payeeData["payerLegalName"] = $this->payer_name;
+
+        // dd($payeeData);
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->put("$this->api_url/apis/singlePayeeUpdate", $payeeData);
+
+        $result = $response->json();
+        if ( empty($result) ) {
+            return [
+                false,
+                []
+            ];
+        }
+
+        $result["payeeId"] = $user->payee->payee_id;
+        if ($result['success'] != 'true') {
+            return [
+                false,
+                "data" => $result,
+                $result
+            ];
+        }
+
+        $payee = Payee::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                "service_provider" => 'kyck',
+                "is_active" => 1,
+                "verified" => 1
+            ]
+        );
+        return [
+            true,
+            $payee
+        ];
+    }
+
+
+    /**
+     * Get payee data
+     *
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1getPayeeById~1{{PayeeId}}/get
+     *
+     * @param Payee $payee
+     * @return array
+     */
+    public function getPayee(Payee $payee) {
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->get("$this->api_url/apis/getPayeeById/$payee->payee_id");
+        return $response->json();
+    }
+
+
     /**
      * Get payees
      *
