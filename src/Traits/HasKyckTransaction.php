@@ -364,7 +364,7 @@ trait HasKyckTransaction {
             $this->triggerKyckStatusEvent($status);
             $this->status = $data['payStub']['status'];
             $this->ach_type = $data['payStub']['achType'];
-            $this->payment_method = $data['payStub']['payeePaymentMethod'];
+            // $this->payment_method = $data['payStub']['payeePaymentMethod'];
 
             try {
                 $this->pickup_cash_code = $data['payStub']["responseData"]["strAuthorizationCode"];
@@ -397,7 +397,7 @@ trait HasKyckTransaction {
 
             $this->ach_type = $data['accept'][0]['achType'];
             $this->kyck_reference_Id = $data['accept'][0]["paymentDetails"][0]["Reference_ID"];
-            $this->payment_method = $data['accept'][0]["paymentDetails"][0]["payeePaymentMethod"];
+            // $this->payment_method = $data['accept'][0]["paymentDetails"][0]["payeePaymentMethod"];
         }
         if ( $save ) {
             $this->save();
