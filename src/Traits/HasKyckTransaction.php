@@ -21,9 +21,11 @@ trait HasKyckTransaction {
         $expiry_trigger = ['kyck'];
         $expire_in_hours = config('kyckglobal.expire_in_hours', 72);
         static::creating(function($item) use($expiry_trigger, $expire_in_hours) {
-            if ( !empty($item->transfer_date) && empty($item->expiry_date) && in_array($item->service_provider, $expiry_trigger) ) {
-                $item->expiry_date = $item->transfer_date->copy();
-                    // ->addHours($expire_in_hours);
+            if ( !empty($item->transfer_date) ) {
+                if ( in_array($item->service_provider, $expiry_trigger) ) {
+                    $item->expiry_date = $item->transfer_date->copy()
+                        ->addHours($expire_in_hours);
+                }
             }
         });
     }
@@ -395,7 +397,7 @@ trait HasKyckTransaction {
                 $this->status = "sent";
             }
 
-            $this->ach_type = $data['accept'][0]['achType'];
+            // $this->ach_type = $data['accept'][0]['achType'];
             $this->kyck_reference_Id = $data['accept'][0]["paymentDetails"][0]["Reference_ID"];
             // $this->payment_method = $data['accept'][0]["paymentDetails"][0]["payeePaymentMethod"];
         }
