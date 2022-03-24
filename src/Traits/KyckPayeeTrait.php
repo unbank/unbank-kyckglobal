@@ -37,7 +37,7 @@ trait KyckPayeeTrait {
                 if ( $result ) {
                     $changes = [
                         'email' => $user->email,
-                        'phone_number' => $user->phone_number
+                        'phone_number' => substr($this->phone_number_base, -10)
                     ];
                     activity()
                         ->causedBy($user)
@@ -117,14 +117,14 @@ trait KyckPayeeTrait {
                 'payeeFirstName' => $name->first_name,
                 'payeeLastName' => $name->last_name,
                 'payeeMiddleName' => $name->middle_name,
-                'pNumber' => $this->phone_number,
+                'pNumber' => substr($this->phone_number_base, -10),
                 'pAddress' => Utilities::getObjectValue($this->main_address, 'street_address', ''),
                 'pcity' => Utilities::getObjectValue($this->main_address, 'city', ''),
                 'pstate' => Utilities::getObjectValue($this->main_address, 'state', ''),
                 'pcountry' => Utilities::getObjectValue($this->main_address, 'country', '')
             ),
             'contactInfo' => array (
-                'mobile' => $this->phone_number,
+                'mobile' => substr($this->phone_number_base, -10),
                 'sendSMS' => true,
             ),
             'userDisabled' => false,
@@ -151,7 +151,7 @@ trait KyckPayeeTrait {
             "payeeFirstName" => $this->firstname,
             "payeeLastName" => $this->lastname,
             "contactInfo" => [
-                "mobile" => $this->phone_number,
+                "mobile" => substr($this->phone_number_base, -10),
                 "sendSMS" => false
             ],
             "paymentTypes" => [

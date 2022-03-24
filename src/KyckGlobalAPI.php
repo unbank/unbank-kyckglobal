@@ -129,8 +129,6 @@ class KyckGlobalAPI
         $payeeData["payerId"] = $this->payer_id;
         // $payeeData["payerLegalName"] = $this->payer_name;
 
-        // dd($payeeData);
-
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $this->token

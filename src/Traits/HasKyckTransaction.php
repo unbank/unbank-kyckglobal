@@ -311,7 +311,7 @@ trait HasKyckTransaction {
             // 'preferredMethod' => $this->payment_method,
             // 'PickupCountry' => $pickupCountry,
             // 'PickupState' => $pickupState,
-            'isConvenienceFeeDisabled' => false,
+            'isConvenienceFeeDisabled' => false
         ];
 
         // try {
