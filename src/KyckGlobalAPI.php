@@ -383,7 +383,7 @@ class KyckGlobalAPI
      * https://sandboxapi.kyckglobal.com/apis/getPayStub/{{paymentReferenceId}}
      *
      * @param string $reference_id
-     * @return array                    Returns the json response for the KyckGlobal API Endpoint.
+     * @return mixed                    Returns the json response for the KyckGlobal API Endpoint.
      */
     public function getPaymentStatement(string $reference_id): array {
         $data = $this->sendGetRequest("apis/getPayStub/$reference_id");
