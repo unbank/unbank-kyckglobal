@@ -151,7 +151,10 @@ trait KyckPayeeTrait {
             "payeeFirstName" => $this->firstname,
             "payeeLastName" => $this->lastname,
             "contactInfo" => [
-                "mobile" => substr($this->phone_number_base, -10),
+                "mobile" => [
+                    "contactCode" => "+1",
+                    "contactNumber" => substr($this->phone_number_base, -10)
+                ],
                 "sendSMS" => false
             ],
             "paymentTypes" => [

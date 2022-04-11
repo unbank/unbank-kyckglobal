@@ -28,6 +28,12 @@ trait HasKyckTransaction {
                 }
             }
         });
+
+        static::updating(function($item) use($expire_in_hours) {
+            if ( $item->status == 'Pickup Ready' && $item->getOriginal('status') != 'Pickup Ready' ) {
+                $item->expiry_date = now()->addHours($expire_in_hours);
+            }
+        });
     }
 
     /**

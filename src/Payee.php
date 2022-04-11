@@ -43,8 +43,6 @@ class Payee extends Model
         return $this->belongsTo('App\Models\User', 'user_id', 'id');
     }
 
-
-
     /**
      * Scope a query to only include objects  verified by email.
      *
