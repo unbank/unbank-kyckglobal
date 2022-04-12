@@ -7,6 +7,13 @@ use Osoobe\Utilities\Helpers\Utilities;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
 use Unbank\Kyckglobal\Payee;
 
+
+/**
+ * Kyck Payee Trait
+ *
+ * @property \Unbank\Kyckglobal\Payee $payee               Payee Model object
+ * @property-read mixed $payee_id       Kyck Payee id
+ */
 trait KyckPayeeTrait {
 
     /**
@@ -20,6 +27,11 @@ trait KyckPayeeTrait {
         return $this->hasOne('\Unbank\Kyckglobal\Payee');
     }
 
+    /**
+     * Get or create payee object
+     *
+     * @return mixed
+     */
     public function getOrCreatePayee() {
         if ( empty($this->payee) ) {
             if ( empty($this->email) ) {
@@ -78,6 +90,24 @@ trait KyckPayeeTrait {
     }
 
 
+    /**
+     * Get payee id
+     *
+     * @return mixed    Returns Payee ID from the payee object if not null
+     */
+    public function getPayeeIdAttribute() {
+        if ( !empty($this->payee) ) {
+            return $this->payee->payee_id;
+        }
+        return null;
+    }
+
+
+    /**
+     * Get kyck payees
+     *
+     * @return mixed
+     */
     public function kyck() {
         return $this->payees->where('service_provider', 'kyck')->first();
     }
@@ -103,10 +133,20 @@ trait KyckPayeeTrait {
         return $this->hasMany('\Unbank\Kyckglobal\PayeeAddress', 'user_id', 'id');
     }
 
+    /**
+     * Get main address
+     *
+     * @return mixed
+     */
     public function main_address() {
         return $this->belongsTo('\Unbank\Kyckglobal\PayeeAddress', 'address_id');
     }
 
+    /**
+     * Get Kyck registration data for Payee
+     *
+     * @return array
+     */
     public function getKyckRegistrationData() {
 
         $name = Str::nameParts($this->name);
