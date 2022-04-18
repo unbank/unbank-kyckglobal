@@ -112,57 +112,6 @@ trait HasKyckTransaction {
     }
 
     /**
-     * Get the pickup expiry time left in hours
-     *
-     * @return mixed
-     */
-    public function expiresInHours() {
-        $now = Carbon::now();
-        try {
-            if ( $now <= $this->expiry_date ) {
-                return $now->diffInHours($this->expiry_date);
-            }
-            return 0;
-        } catch (\Throwable $th) {
-            return 0;
-        }
-    }
-
-    /**
-     * Get the pickup expiry time left in minutes
-     *
-     * @return mixed
-     */
-    public function expiresInMinutes() {
-        $now = Carbon::now();
-        try {
-            if ( $now <= $this->expiry_date ) {
-                return $now->diffInMinutes($this->expiry_date);
-            }
-            return 0;
-        } catch (\Throwable $th) {
-            return 0;
-        }
-    }
-
-    /**
-     * Get the pickup expiry time left in seconds
-     *
-     * @return mixed
-     */
-    public function expiresInSeconds() {
-        $now = Carbon::now();
-        try {
-            if ( $now <= $this->expiry_date ) {
-                return $now->diffInSeconds($this->expiry_date);
-            }
-            return 0;
-        } catch (\Throwable $th) {
-            return 0;
-        }
-    }
-
-    /**
      * Get the expiration progress
      *
      * @return int

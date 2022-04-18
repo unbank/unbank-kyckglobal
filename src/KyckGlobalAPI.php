@@ -19,7 +19,7 @@ class KyckGlobalAPI
     public function __construct(
         string $username,
         string $password,
-        string $api_url = "https://sandboxapi.kyckglobal.com",
+        string $api_url = "https://api.kyckglobal.com",
         string $payer_name = '',
         string $payer_id = '',
         $auth = true
@@ -362,7 +362,7 @@ class KyckGlobalAPI
      * specified Payer. Send a GET request to the /getAllPayments endpoint with the Organization ID
      * as the last element in the URL, as shown in the example below:
      *
-     * https://sandboxapi.kyckglobal.com/apis/getAllPayments/{{organizationId}}
+     * https://api.kyckglobal.com/apis/getAllPayments/{{organizationId}}
      *
      * @return array                    Returns the json response for the KyckGlobal API Endpoint.
      */
@@ -379,7 +379,7 @@ class KyckGlobalAPI
      * Send a GET request to the /getPayStub endpoint with the payment's reference ID as the last
      * element in the URL, as shown in the example below:
      *
-     * https://sandboxapi.kyckglobal.com/apis/getPayStub/{{paymentReferenceId}}
+     * https://api.kyckglobal.com/apis/getPayStub/{{paymentReferenceId}}
      *
      * @param string $reference_id
      * @return mixed                    Returns the json response for the KyckGlobal API Endpoint.
@@ -389,6 +389,16 @@ class KyckGlobalAPI
         return $data;
     }
 
+    /**
+     * Cancel Payments - Get Pay Statement
+     *
+     * The Cancel Payment by Reference ID operation cancels the payment done by a specified Payer.
+     *
+     * https://api.kyckglobal.com/apis/cancelPayment/{{paymentReferenceId}}
+     *
+     * @param string $reference_id
+     * @return mixed                    Returns the json response for the KyckGlobal API Endpoint.
+     */
     public function cancelPayment($reference_id) {
         $data = $this->sendGetRequest("apis/cancelPayment/$reference_id");
         return $data;
