@@ -213,11 +213,28 @@ class KyckGlobalAPI
      *
      * @example KyckGlobal::getZipCodeCashOutATMLocations("11530", 25)
      *
+     * @deprecated 1.1.0
      * @param string $zipCode
      * @param integer $distance
      * @return void
      */
     public function getZipCodeCashOutATMLocations(string $zipCode, int $distance = 25)
+    {
+        return $this->getCashOutATMLocationsByZipCode($zipCode, $distance);
+    }
+
+
+
+    /**
+     * Get Cash Out ATM Locations within the given radius in miles based on the given cordinates
+     *
+     * @example KyckGlobal::getCashOutATMLocationsByZipCode("11530", 25)
+     *
+     * @param string $zipCode
+     * @param integer $distance
+     * @return void
+     */
+    public function getCashOutATMLocationsByZipCode(string $zipCode, int $distance = 25)
     {
 
         $curl = curl_init();
@@ -250,17 +267,34 @@ class KyckGlobalAPI
         return $data;
     }
 
+
     /**
-     * Get Cash Out ATM Locations within the given radius in miles based on the given cordinates
+     * Get Cash Out ATM Locations within the given radius in miles based on the given coordinates
      *
      * @example KyckGlobal::getCashOutATMLocations(28.66207, -81.381724, 25)
      *
+     * @deprecated 1.1.0
      * @param float $latitude
      * @param float $longitude
      * @param integer $distance
      * @return void
      */
     public function getCashOutATMLocations(float $latitude, float $longitude, int $distance = 25)
+    {
+        return $this->getCashOutATMLocationsByCoords($latitude, $longitude, $distance);
+    }
+
+    /**
+     * Get Cash Out ATM Locations within the given radius in miles based on the given coordinates
+     *
+     * @example KyckGlobal::getCashOutATMLocationsByCoords(28.66207, -81.381724, 25)
+     *
+     * @param float $latitude
+     * @param float $longitude
+     * @param integer $distance
+     * @return void
+     */
+    public function getCashOutATMLocationsByCoords(float $latitude, float $longitude, int $distance = 25)
     {
 
         $curl = curl_init();
