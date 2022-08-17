@@ -235,7 +235,7 @@ trait KyckPayeeTrait {
         if ( !empty($this->paypalAccount ) ) {
             $data['paymentTypes'][] = "paypal";
             $data["payeePaypalFinancialAccounts"] = [
-                "paypalAllocation" => 100,
+                "paypalAllocation" => 0,
                 "paypalEmail" => $this->paypalAccount->email,
                 "paypalcurrency" => $this->paypalAccount->currency
             ];
@@ -245,12 +245,12 @@ trait KyckPayeeTrait {
         if ( !empty($this->venmoAccount ) ) {
             $data['paymentTypes'][] = "venmo";
             $data["payeeVenmoAccount"] = [
-                "venmoAllocation" => 100,
+                "venmoAllocation" => 0,
                 "PhoneNmber" => $this->venmoAccount->phone_number,
                 "venmocurrency" => $this->venmoAccount->currency
             ];
             $data["venmo"] = true;
-            $data["venmoAllocation"] = 100;
+            $data["venmoAllocation"] = 0;
         }
         return $data;
     }
