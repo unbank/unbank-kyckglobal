@@ -50,10 +50,11 @@ trait HasKyckTransaction {
      * Scope a query to only exclude rejected transactions
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param array $statuses
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeNotRejected($query) {
-        return $query->where('status', '!=', 'Rejected');
+    public function scopeNotRejected($query, array $statuses = ['Rejected']) {
+        return $query->whereNotIn('status', $statuses);
     }
 
 
@@ -76,6 +77,21 @@ trait HasKyckTransaction {
      */
     public function scopePickupReady($query) {
         return $query->where('status', 'Pickup Ready');
+    }
+
+
+    /**
+     * Scope a query to only include transactions that have been processed by Kyck
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeSentToKyck($query) {
+        return $query->kyck()
+            ->whereIn('status', [
+                'Pickup Ready', 'sent', 'Submitted', 'Success', 'Returned',
+                'Proccessing', 'Processing'
+            ]);
     }
 
     /**

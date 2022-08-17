@@ -6,7 +6,8 @@ use Osoobe\Utilities\Helpers\Str;
 use Osoobe\Utilities\Helpers\Utilities;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
 use Unbank\Kyckglobal\Payee;
-
+use Unbank\Kyckglobal\PayPalAccount;
+use Unbank\Kyckglobal\VenmoAccount;
 
 /**
  * Kyck Payee Trait
@@ -23,8 +24,27 @@ trait KyckPayeeTrait {
      */
     public function payee(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        // return $this->belongsTo('Unbank\Kyckglobal\Payee', 'user_id');
         return $this->hasOne('\Unbank\Kyckglobal\Payee');
+    }
+
+    /**
+     * Get all of the Paypal Email for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function paypalAccount()
+    {
+        return $this->hasOne(PayPalAccount::class, 'user_id');
+    }
+
+    /**
+     * Get all of the Paypal Email for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function venmoAccount()
+    {
+        return $this->hasOne(VenmoAccount::class, 'user_id');
     }
 
     /**
@@ -39,9 +59,9 @@ trait KyckPayeeTrait {
             }
 
             $user = $this;
-            $payee = Payee::where('email', $user->email)
-                ->where('user_id', null)
-                ->orWhere('user_id', $user->id)
+            $payee = Payee::where('user_id', $user->id)
+                // ->where('user_id', null)
+                ->orWhere('email', $user->email)
                 ->first();
 
             if ( ! $payee ) {
@@ -98,6 +118,10 @@ trait KyckPayeeTrait {
     public function getPayeeIdAttribute() {
         if ( !empty($this->payee) ) {
             return $this->payee->payee_id;
+        }
+        $payee = $this->getOrCreatePayee();
+        if ( !empty($payee) ) {
+            return $payee->payee_id;
         }
         return null;
     }
@@ -186,8 +210,9 @@ trait KyckPayeeTrait {
      * @return array
      */
     public function getKyckPayeeUpdateData() {
-        return [
-            "payeeId" => $this->payee->payee_id,
+        $payee = $this->getOrCreatePayee();
+        $data = [
+            "payeeId" => $payee->payee_id,
             "payeeFirstName" => $this->firstname,
             "payeeLastName" => $this->lastname,
             "contactInfo" => [
@@ -206,6 +231,28 @@ trait KyckPayeeTrait {
             "ncrPay360Allocation" => 100
         ];
 
+        // Paypal account info
+        if ( !empty($this->paypalAccount ) ) {
+            $data['paymentTypes'][] = "paypal";
+            $data["payeePaypalFinancialAccounts"] = [
+                "paypalAllocation" => 100,
+                "paypalEmail" => $this->paypalAccount->email,
+                "paypalcurrency" => $this->paypalAccount->currency
+            ];
+        }
+
+        // Venmo account info
+        if ( !empty($this->venmoAccount ) ) {
+            $data['paymentTypes'][] = "venmo";
+            $data["payeeVenmoAccount"] = [
+                "venmoAllocation" => 100,
+                "PhoneNmber" => $this->venmoAccount->phone_number,
+                "venmocurrency" => $this->venmoAccount->currency
+            ];
+            $data["venmo"] = true;
+            $data["venmoAllocation"] = 100;
+        }
+        return $data;
     }
 
 

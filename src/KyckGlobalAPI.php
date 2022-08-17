@@ -56,8 +56,11 @@ class KyckGlobalAPI
             }
             $status = $this->auth_data['success'];
         } catch (\Throwable $th) {
-            //throw $th;
             $status = false;
+            logger($th->getMessage(), [
+                "context" => "KyckGlobalAPI::auth",
+                "message" => "Authorization failed for Kyck"
+            ]);
         }
         return $status;
     }
@@ -127,7 +130,6 @@ class KyckGlobalAPI
         $payeeData = $user->getKyckPayeeUpdateData();
 
         $payeeData["payerId"] = $this->payer_id;
-        // $payeeData["payerLegalName"] = $this->payer_name;
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $this->token
@@ -137,7 +139,8 @@ class KyckGlobalAPI
         if ( empty($result) ) {
             return [
                 false,
-                []
+                [],
+                $result
             ];
         }
 
@@ -160,7 +163,8 @@ class KyckGlobalAPI
         );
         return [
             true,
-            $payee
+            $payee,
+            $result
         ];
     }
 
@@ -378,14 +382,30 @@ class KyckGlobalAPI
     }
 
 
+    /**
+     * Payments Create
+     *
+     * The Create Payments operation initiates one or more payments to the payees defined in the request body.
+     * The request body must include one or more payeeDetails records that specify the Payee record,
+     * the Payee's TID, and the payment date and amount.
+     * This operation can submit payments for processing on multiple dates.
+     *
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1bulkPaymentByJSON/post
+     *
+     * @param array $payemnts
+     * @return mixed
+     */
     public function makePayments(array $payemnts) {
         $data = [
             'payerId' => $this->payer_id,
             'payments' => $payemnts
         ];
-        $data_str = json_encode($data);
-        $response = $this->sendPostRequest('apis/bulkPaymentByJSON', $data_str, 'POST');
-        return $response;
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->post("$this->api_url/apis/bulkPaymentByJSON", $data);
+        return $response->json();
     }
 
 
@@ -419,8 +439,12 @@ class KyckGlobalAPI
      * @return mixed                    Returns the json response for the KyckGlobal API Endpoint.
      */
     public function getPaymentStatement(string $reference_id): array {
-        $data = $this->sendGetRequest("apis/getPayStub/$reference_id");
-        return $data;
+
+        $response = Http::withHeaders([
+            'Authorization' => $this->token
+        ])->get("$this->api_url/apis/getPayStub/$reference_id");
+        return $response->json();
+
     }
 
     /**
@@ -434,7 +458,11 @@ class KyckGlobalAPI
      * @return mixed                    Returns the json response for the KyckGlobal API Endpoint.
      */
     public function cancelPayment($reference_id) {
-        $data = $this->sendGetRequest("apis/cancelPayment/$reference_id");
-        return $data;
+
+        $response = Http::withHeaders([
+            'Authorization' => $this->token
+        ])->get("$this->api_url/apis/cancelPayment/$reference_id");
+        return $response->json();
+
     }
 }
