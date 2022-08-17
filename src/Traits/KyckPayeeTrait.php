@@ -232,25 +232,31 @@ trait KyckPayeeTrait {
         ];
 
         // Paypal account info
-        if ( !empty($this->paypalAccount ) ) {
-            $data['paymentTypes'][] = "paypal";
-            $data["payeePaypalFinancialAccounts"] = [
-                "paypalAllocation" => 0,
-                "paypalEmail" => $this->paypalAccount->email,
-                "paypalcurrency" => $this->paypalAccount->currency
-            ];
-        }
+        try {
+            if ( !empty($this->paypalAccount ) ) {
+                $data['paymentTypes'][] = "paypal";
+                $data["payeePaypalFinancialAccounts"] = [
+                    "paypalAllocation" => 0,
+                    "paypalEmail" => $this->paypalAccount->email,
+                    "paypalcurrency" => $this->paypalAccount->currency
+                ];
+            }
 
-        // Venmo account info
-        if ( !empty($this->venmoAccount ) ) {
-            $data['paymentTypes'][] = "venmo";
-            $data["payeeVenmoAccount"] = [
-                "venmoAllocation" => 0,
-                "PhoneNmber" => $this->venmoAccount->phone_number,
-                "venmocurrency" => $this->venmoAccount->currency
-            ];
-            $data["venmo"] = true;
-            $data["venmoAllocation"] = 0;
+            // Venmo account info
+            if ( !empty($this->venmoAccount ) ) {
+                $data['paymentTypes'][] = "venmo";
+                $data["payeeVenmoAccount"] = [
+                    "venmoAllocation" => 0,
+                    "PhoneNmber" => $this->venmoAccount->phone_number,
+                    "venmocurrency" => $this->venmoAccount->currency
+                ];
+                $data["venmo"] = true;
+                $data["venmoAllocation"] = 0;
+            }
+        } catch (\Throwable $th) {
+            logger($th->getMessage(), [
+                'context' => "KyckPayeeTrait::getKyckPayeeUpdateData"
+            ]);
         }
         return $data;
     }

@@ -57,6 +57,17 @@ trait HasKyckTransaction {
         return $query->whereNotIn('status', $statuses);
     }
 
+    /**
+     * Scope a query to only exclude rejected transactions
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param string $kyck_reference_id
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeKyckReference($query, $kyck_reference_id) {
+        return $query->where('kyck_reference_id', $kyck_reference_id);
+    }
+
 
     /**
      * Scope a query to only exclude transactions returned by Kyck
