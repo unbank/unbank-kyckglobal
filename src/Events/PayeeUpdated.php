@@ -18,12 +18,13 @@ class PayeeUpdated
     public $user;
     public $context;
 
-    /**
+     /**
      * Create a new event instance.
-     *
-     * @return void
-     */
-    public function __construct($user, $context=null)
+      *
+      * @param \App\Models\User $user
+      * @param mixed ...$context
+      */
+    public function __construct($user, ...$context)
     {
         $this->user = $user;
         $this->context = $context;

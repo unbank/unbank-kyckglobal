@@ -115,15 +115,13 @@ class KyckGlobalAPI
     }
 
 
-
-
     /**
-     * Create Payee
+     * Update Payee
      *
      * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1singlePayeeUpdate/put
      *
      * @param \App\Models\User $user
-     * @return array   Return Payee object if use is registered, else false;
+     * @return object   Returns object with keys: status, data and response
      */
     public function updatePayee($user)
     {
@@ -137,19 +135,19 @@ class KyckGlobalAPI
 
         $result = $response->json();
         if ( empty($result) ) {
-            return [
-                false,
-                [],
-                $result
+            return (object) [
+                'status' => false,
+                'data' => [],
+                'response' => $result
             ];
         }
 
         $result["payeeId"] = $user->payee->payee_id;
         if ($result['success'] != 'true') {
-            return [
-                false,
-                "data" => $result,
-                $result
+            return (object) [
+                'status' => false,
+                "data" => [],
+                'response' => $result
             ];
         }
 
@@ -161,10 +159,61 @@ class KyckGlobalAPI
                 "verified" => 1
             ]
         );
-        return [
-            true,
-            $payee,
-            $result
+        return (object) [
+            'status' => true,
+            'data' => $payee,
+            'response' => $result
+        ];
+    }
+
+
+    /**
+     * Update Payee Allocation
+     *
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1singlePayeeUpdate/put
+     *
+     * @param \App\Models\User $user
+     * @return object   Keys: status, data, result
+     */
+    public function updateAllocation($user, string $method="ncrpay360")
+    {
+        $payeeData = $user->generateAllocationData($method);
+        $payeeData["payerId"] = $this->payer_id;
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->put("$this->api_url/apis/singlePayeeUpdate", $payeeData);
+
+        $result = $response->json();
+        if ( empty($result) ) {
+            return (object) [
+                'status' => false,
+                'data' => [],
+                'result' => $result
+            ];
+        }
+
+        $result["payeeId"] = $user->payee->payee_id;
+        if ($result['success'] != 'true') {
+            return (object) [
+                'status' => false,
+                "data" => $result,
+                'result' => $result
+            ];
+        }
+
+        $payee = Payee::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                "service_provider" => 'kyck',
+                "is_active" => 1,
+                "verified" => 1
+            ]
+        );
+        return (object) [
+            'status' => true,
+            'data' => $payee,
+            'result' => $result
         ];
     }
 

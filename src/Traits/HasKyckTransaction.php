@@ -47,6 +47,16 @@ trait HasKyckTransaction {
     }
 
     /**
+     * Scope a query to only include kyck transactions.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeServiceMethod($query, $method) {
+        return $query->where('service_method', $method);
+    }
+
+    /**
      * Scope a query to only exclude rejected transactions
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
@@ -186,6 +196,24 @@ trait HasKyckTransaction {
     }
 
     /**
+     * Check if the transaction is a NCRPay360 transaction
+     *
+     * @return boolean
+     */
+    public function isNcrPay360(): bool {
+        return $this->service_method == 'ncrpay360';
+    }
+
+    /**
+     * Check if the transaction is a PayPal transaction
+     *
+     * @return boolean
+     */
+    public function isPayPal(): bool {
+        return $this->service_method == 'paypal';
+    }
+
+    /**
      * Check if the transaction has been accepted and ready for pickup.
      *
      * @return boolean
@@ -195,6 +223,15 @@ trait HasKyckTransaction {
             $this->status,
             'accepted'
         );
+    }
+
+    /**
+     * Check if the transaction is a Venmo transaction
+     *
+     * @return boolean
+     */
+    public function isVenmo(): bool {
+        return $this->service_method == 'venmo';
     }
 
     /**
@@ -353,7 +390,11 @@ trait HasKyckTransaction {
             try {
                 $this->pickup_cash_code = $data['payStub']["responseData"]["strAuthorizationCode"];
             } catch (\Throwable $th) {
-                //throw $th;
+                logger("Pickup cash code error", [
+                    "context" => 'Transaction:'.$this->id,
+                    'message' => $th->getMessage(),
+                    'file' => "HasKyckTransaction"
+                ]);
             }
 
             if ( $save ) {

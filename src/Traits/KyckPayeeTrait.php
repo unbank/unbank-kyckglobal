@@ -204,6 +204,92 @@ trait KyckPayeeTrait {
 
 
     /**
+     * Generate Allocation data
+     *
+     * @param Payee $payee
+     * @param string $method
+     * @return array
+     */
+    public function generateAllocationData($method='ncrpay360') {
+        $payee = $this->getOrCreatePayee();
+        $has_paypal = !empty($this->paypalAccount );
+        $has_venmo = !empty($this->venmoAccount );
+
+        $paypalAllocation = 0;
+        $venmoAllocation = 0;
+        $ncrpay360Allocation = 0;
+
+        switch (strtolower($method)) {
+            case 'ncrpay360':
+                $ncrpay360Allocation = 100;
+                break;
+
+            case 'paypal':
+                if ( $has_paypal ) {
+                    $paypalAllocation = 100;
+                } else {
+                    $ncrpay360Allocation = 100;
+                }
+                break;
+
+
+            case 'venmo':
+                if ( $has_paypal ) {
+                    $venmoAllocation = 100;
+                } else {
+                    $ncrpay360Allocation = 100;
+                }
+                break;
+
+            default:
+                $ncrpay360Allocation = 100;
+                break;
+        }
+
+
+        $data = [
+            "payeeId" => $payee->payee_id,
+            "paymentTypes" => [
+                "NCRpay360",
+            ],
+            "ncrPay360" => [
+                "ncrPay360Allocation" => $ncrpay360Allocation
+            ],
+            "ncrPay360Allocation" => $ncrpay360Allocation
+        ];
+
+        // Paypal account info
+        try {
+            if ( $has_paypal ) {
+                $data['paymentTypes'][] = "paypal";
+                $data["payeePaypalFinancialAccounts"] = [
+                    "paypalAllocation" => $paypalAllocation,
+                    "paypalEmail" => $this->paypalAccount->email,
+                    "paypalcurrency" => $this->paypalAccount->currency
+                ];
+            }
+
+            // Venmo account info
+            if ( $has_venmo ) {
+                $data['paymentTypes'][] = "venmo";
+                $data["payeeVenmoAccount"] = [
+                    "venmoAllocation" => $venmoAllocation,
+                    "PhoneNmber" => $this->venmoAccount->phone_number,
+                    "venmocurrency" => $this->venmoAccount->currency
+                ];
+                $data["venmo"] = true;
+                $data["venmoAllocation"] = 0;
+            }
+        } catch (\Throwable $th) {
+            logger($th->getMessage(), [
+                'context' => "KyckPayeeTrait::getKyckPayeeUpdateData"
+            ]);
+        }
+        return $data;
+    }
+
+
+    /**
      * Get data that is used to update the payee account
      *
      * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1singlePayeeUpdate/put
@@ -221,44 +307,12 @@ trait KyckPayeeTrait {
                     "contactNumber" => substr($this->phone_number_base, -10)
                 ],
                 "sendSMS" => false
-            ],
-            "paymentTypes" => [
-                "NCRpay360",
-            ],
-            "ncrPay360" => [
-                "ncrPay360Allocation" => 100
-            ],
-            "ncrPay360Allocation" => 100
+            ]
         ];
-
-        // Paypal account info
-        try {
-            if ( !empty($this->paypalAccount ) ) {
-                $data['paymentTypes'][] = "paypal";
-                $data["payeePaypalFinancialAccounts"] = [
-                    "paypalAllocation" => 0,
-                    "paypalEmail" => $this->paypalAccount->email,
-                    "paypalcurrency" => $this->paypalAccount->currency
-                ];
-            }
-
-            // Venmo account info
-            if ( !empty($this->venmoAccount ) ) {
-                $data['paymentTypes'][] = "venmo";
-                $data["payeeVenmoAccount"] = [
-                    "venmoAllocation" => 0,
-                    "PhoneNmber" => $this->venmoAccount->phone_number,
-                    "venmocurrency" => $this->venmoAccount->currency
-                ];
-                $data["venmo"] = true;
-                $data["venmoAllocation"] = 0;
-            }
-        } catch (\Throwable $th) {
-            logger($th->getMessage(), [
-                'context' => "KyckPayeeTrait::getKyckPayeeUpdateData"
-            ]);
-        }
-        return $data;
+        return array_merge(
+            $data,
+            $this->generateAllocationData($payee, 'ncrpay360')
+        );
     }
 
 
