@@ -91,7 +91,8 @@ class KyckGlobalAPI
                 []
             ];
         }
-        if ($result['success'] != 'true') {
+
+        if ($result['success']) {
             return [
                 false,
                 $result

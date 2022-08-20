@@ -4,6 +4,8 @@ namespace Unbank\Kyckglobal\Traits;
 
 use Osoobe\Utilities\Helpers\Str;
 use Osoobe\Utilities\Helpers\Utilities;
+use Unbank\Kyckglobal\Events\PayeeCreated;
+use Unbank\Kyckglobal\Events\PayeeNotFound;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
 use Unbank\Kyckglobal\Payee;
 use Unbank\Kyckglobal\PayPalAccount;
@@ -76,6 +78,7 @@ trait KyckPayeeTrait {
                         ->performedOn($payee)
                         ->withProperties($changes)
                         ->log("Payee account was created");
+                    event(new PayeeCreated($user, $payee));
                 }
             }
 
@@ -92,6 +95,7 @@ trait KyckPayeeTrait {
                     ->causedBy($user)
                     ->withProperties($payee)
                     ->log("Payee account info was not updated");
+                event(new PayeeNotFound($user, $payee));
                 return null;
             }
             return $payee;
