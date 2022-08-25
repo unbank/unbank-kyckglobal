@@ -515,4 +515,29 @@ class KyckGlobalAPI
         return $response->json();
 
     }
+
+
+    /**
+     * Payee TIN Check
+     * Validate a user's Taxpayer Identification Number.
+     *
+     * @param string $tax_id
+     * @param string $first_name
+     * @param string $last_name
+     * @return void
+     */
+    public function tinCheck(string $tax_id, string $first_name, string $last_name) {
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->post("$this->api_url/apis/userAuth", [
+            "ptaxid" => $tax_id,
+            "FirstName" => $first_name,
+            "LastName" => $last_name
+        ]);
+
+        return $response->json();
+
+    }
 }

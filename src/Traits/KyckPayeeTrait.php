@@ -236,9 +236,8 @@ trait KyckPayeeTrait {
                 }
                 break;
 
-
             case 'venmo':
-                if ( $has_paypal ) {
+                if ( $has_venmo ) {
                     $venmoAllocation = 100;
                 } else {
                     $ncrpay360Allocation = 100;
@@ -277,12 +276,11 @@ trait KyckPayeeTrait {
             if ( $has_venmo ) {
                 $data['paymentTypes'][] = "venmo";
                 $data["payeeVenmoAccount"] = [
-                    "venmoAllocation" => $venmoAllocation,
                     "PhoneNmber" => $this->venmoAccount->phone_number,
                     "venmocurrency" => $this->venmoAccount->currency
                 ];
                 $data["venmo"] = true;
-                $data["venmoAllocation"] = 0;
+                $data["venmoAllocation"] = $venmoAllocation;
             }
         } catch (\Throwable $th) {
             logger($th->getMessage(), [
