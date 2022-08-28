@@ -4,6 +4,9 @@ namespace Unbank\Kyckglobal;
 
 use Illuminate\Support\Facades\Http;
 use Osoobe\Utilities\Helpers\Utilities;
+use Unbank\Kyckglobal\Events\PayeeCreated;
+use Unbank\Kyckglobal\Events\PayeeError;
+use Unbank\Kyckglobal\Events\PayeeUpdated;
 
 class KyckGlobalAPI
 {
@@ -86,13 +89,15 @@ class KyckGlobalAPI
 
         $result = $response->json();
         if ( empty($result) ) {
+            event(new PayeeError($user, "No result returned", $result));
             return [
                 false,
                 []
             ];
         }
 
-        if ($result['success']) {
+        if ( ! $result['success'] ) {
+            event(new PayeeError($user, "Unable to create payee", $result));
             return [
                 false,
                 $result
@@ -109,6 +114,7 @@ class KyckGlobalAPI
                 "verified" => 1
             ]
         );
+        event(new PayeeCreated($user, $payee));
         return [
             true,
             $payee
@@ -136,6 +142,7 @@ class KyckGlobalAPI
 
         $result = $response->json();
         if ( empty($result) ) {
+            event(new PayeeError($user, "No result returned", $result));
             return (object) [
                 'status' => false,
                 'data' => [],
@@ -144,7 +151,8 @@ class KyckGlobalAPI
         }
 
         $result["payeeId"] = $user->payee->payee_id;
-        if ($result['success'] != 'true') {
+        if ($result['success'] != true) {
+            event(new PayeeError($user, "Unable to update payee", $result));
             return (object) [
                 'status' => false,
                 "data" => [],
@@ -152,6 +160,7 @@ class KyckGlobalAPI
             ];
         }
 
+        event(new PayeeUpdated($user, $result));
         $payee = Payee::updateOrCreate(
             ['user_id' => $user->id],
             [
@@ -531,7 +540,7 @@ class KyckGlobalAPI
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $this->token
-        ])->post("$this->api_url/apis/userAuth", [
+        ])->post("$this->api_url/apis/tinvalidate", [
             "ptaxid" => $tax_id,
             "FirstName" => $first_name,
             "LastName" => $last_name

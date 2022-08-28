@@ -62,7 +62,6 @@ trait KyckPayeeTrait {
 
             $user = $this;
             $payee = Payee::where('user_id', $user->id)
-                // ->where('user_id', null)
                 ->orWhere('email', $user->email)
                 ->first();
 
@@ -78,7 +77,6 @@ trait KyckPayeeTrait {
                         ->performedOn($payee)
                         ->withProperties($changes)
                         ->log("Payee account was created");
-                    event(new PayeeCreated($user, $payee));
                 }
             }
 
@@ -257,8 +255,7 @@ trait KyckPayeeTrait {
             ],
             "ncrPay360" => [
                 "ncrPay360Allocation" => $ncrpay360Allocation
-            ],
-            "ncrPay360Allocation" => $ncrpay360Allocation
+            ]
         ];
 
         // Paypal account info
