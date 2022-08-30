@@ -2,9 +2,10 @@
 
 namespace Unbank\Kyckglobal;
 
-use App\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Osoobe\LaravelTraits\Support\BelongsToUser;
+use Osoobe\LaravelTraits\Support\HasPhoneNumber;
 use Osoobe\LaravelTraits\Support\IsDefault;
 
 class VenmoAccount extends Model
@@ -12,6 +13,7 @@ class VenmoAccount extends Model
     use BelongsToUser;
     use HasFactory;
     use IsDefault;
+    use HasPhoneNumber;
 
     protected $fillable = [
         "phone_number",
@@ -29,4 +31,7 @@ class VenmoAccount extends Model
     protected $casts = [
         'data' => 'array',
     ];
+
+
+
 }

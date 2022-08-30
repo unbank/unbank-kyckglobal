@@ -2,9 +2,9 @@
 
 namespace Unbank\Kyckglobal;
 
-use App\Traits\BelongsToUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Osoobe\LaravelTraits\Support\BelongsToUser;
 use Osoobe\LaravelTraits\Support\IsDefault;
 
 class PayPalAccount extends Model

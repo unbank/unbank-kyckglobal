@@ -250,6 +250,13 @@ trait KyckPayeeTrait {
 
         $data = [
             "payeeId" => $payee->payee_id,
+            "contactInfo" => [
+                "mobile" => [
+                    "contactCode" => "+1",
+                    "contactNumber" => substr($this->phone_number_base, -10)
+                ],
+                "sendSMS" => false
+            ],
             "paymentTypes" => [
                 "NCRpay360",
             ],
