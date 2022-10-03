@@ -3,6 +3,7 @@
 namespace Unbank\Kyckglobal\Traits;
 
 use App\Events\PickupReady;
+use App\Events\TransactionCompleted;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Osoobe\Laravel\Settings\Models\AppMeta;
@@ -251,7 +252,7 @@ trait HasKyckTransaction {
             return true;
         } elseif ( $this->isPickupReady() && self::checkKyckStatus($status, 'completed') ) {
             // Send Transaction Compeleted Notification
-            event(new PickupReady($transaction));
+            event(new TransactionCompleted($transaction));
             $this->status = $status;
             return true;
         }
