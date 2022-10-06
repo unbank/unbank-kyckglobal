@@ -280,7 +280,7 @@ trait KyckPayeeTrait {
             if ( $has_venmo ) {
                 $data['paymentTypes'][] = "venmo";
                 $data["payeeVenmoAccount"] = [
-                    "PhoneNmber" => $this->venmoAccount->phone_number,
+                    "PhoneNmber" => $this->venmoAccount->phone_number_base,
                     "venmocurrency" => $this->venmoAccount->currency
                 ];
                 $data["venmo"] = true;

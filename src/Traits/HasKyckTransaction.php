@@ -255,6 +255,11 @@ trait HasKyckTransaction {
             event(new TransactionCompleted($transaction));
             $this->status = $status;
             return true;
+        } elseif ( $this->status != "Success" && self::checkKyckStatus($status, 'completed') ) {
+            // Send Transaction Compeleted Notification
+            event(new TransactionCompleted($transaction));
+            $this->status = $status;
+            return true;
         }
         return false;
     }
