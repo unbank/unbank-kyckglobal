@@ -329,7 +329,7 @@ trait HasKyckTransaction {
             'paymentReason' => $this->reason,
             // 'TID' => '421847434',
             'paymentData' => array(
-                'effectivePaymentDate' => $this->transfer_date->format('m/d/y'),
+                'effectivePaymentDate' => $this->transfer_date->format('m/d/Y'),
                 'amount' => $this->amount,
             ),
             'PayerPaymentReferenceNum' => $this->order_id,
