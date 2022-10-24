@@ -176,6 +176,38 @@ class KyckGlobalAPI
         ];
     }
 
+    public function addPushToCardDetails($user, $nameOnCard, $cardNumber, $year, $month, $cvv, $street, $postalCode, $allocation=0) {
+        $data = [
+            "payerId" => $this->payer_id,
+            'payeeId' => $user->payee_id,
+            "payeePushToCard" => [
+                "nameOnCard" => $nameOnCard,
+                "cardNumber" => $cardNumber,
+                "expiryYear" => $year,
+                "expiryMonth" => $month,
+                "street" => $street,
+                "postalCode" => $postalCode,
+                "cvv" => $cvv,
+                "allocation" => $allocation
+            ]
+        ];
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->post("$this->api_url/apis/addPushToCardDetails", $data);
+
+        $result = $response->json();
+        if ( empty($result) ) {
+            return (object) [
+                'status' => false,
+                'data' => [],
+                'result' => $result
+            ];
+        }
+
+        return $result;
+    }
+
 
     /**
      * Update Payee Allocation
@@ -545,8 +577,11 @@ class KyckGlobalAPI
             "FirstName" => $first_name,
             "LastName" => $last_name
         ]);
-
         return $response->json();
-
     }
+
+
+
+
+
 }
