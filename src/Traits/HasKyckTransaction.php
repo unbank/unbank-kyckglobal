@@ -192,7 +192,7 @@ trait HasKyckTransaction {
     protected static function checkKyckStatus($status, $index): bool {
         return in_array(
             $status,
-            config("kyckglobal.statuses.$index")
+            config("kyckglobal.statuses.$index", [])
         );
     }
 
