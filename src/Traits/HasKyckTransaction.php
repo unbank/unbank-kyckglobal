@@ -226,6 +226,13 @@ trait HasKyckTransaction {
         );
     }
 
+    public function isCancellable(): bool {
+        return self::checkKyckStatus(
+            $this->status,
+            'cancellable'
+        );
+    }
+
     /**
      * Check if the transaction is a Venmo transaction
      *
@@ -354,7 +361,7 @@ trait HasKyckTransaction {
      * @return string
      */
     public static function generateTransactionNumber() {
-        return "UNBT".Str::random(3)."0".static::count();
+        return "UNBTRNS".strtoupper(Str::random(3))."0".static::count();
     }
 
     /**
