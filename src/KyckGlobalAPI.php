@@ -217,9 +217,9 @@ class KyckGlobalAPI
      * @param \App\Models\User $user
      * @return object   Keys: status, data, result
      */
-    public function updateAllocation($user, string $method="ncrpay360")
+    public function updateAllocation($user, string $method="ncrpay360", array $options=[])
     {
-        $payeeData = $user->generateAllocationData($method);
+        $payeeData = $user->generateAllocationData($method, $options);
         $payeeData["payerId"] = $this->payer_id;
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',

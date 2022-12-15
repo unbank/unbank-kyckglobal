@@ -210,9 +210,10 @@ trait KyckPayeeTrait {
      *
      * @param Payee $payee
      * @param string $method
+     * @param array $options
      * @return array
      */
-    public function generateAllocationData($method='ncrpay360') {
+    public function generateAllocationData($method='ncrpay360', array $options=[]) {
         $payee = $this->getOrCreatePayee();
         $has_paypal = !empty($this->paypalAccount );
         $has_venmo = !empty($this->venmoAccount );
@@ -317,7 +318,7 @@ trait KyckPayeeTrait {
         ];
         return array_merge(
             $data,
-            $this->generateAllocationData($payee, 'ncrpay360')
+            $this->generateAllocationData('ncrpay360')
         );
     }
 
