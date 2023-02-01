@@ -2,12 +2,12 @@
 
 namespace Unbank\Kyckglobal\Traits;
 
-use App\Events\PickupReady;
-use App\Events\TransactionCompleted;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 use Osoobe\Laravel\Settings\Models\AppMeta;
 use Osoobe\Utilities\Helpers\Str;
+use Unbank\Kyckglobal\Events\KyckTransactionCompleted;
+use Unbank\Kyckglobal\Events\KyckTransactionRejected;
+use Unbank\Kyckglobal\Events\PickupReady;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
 
 trait HasKyckTransaction {
@@ -250,7 +250,9 @@ trait HasKyckTransaction {
      */
     public function triggerKyckStatusEvent($status) {
         $transaction = $this;
-        if ( $this->status == $status || $this->isRejected() ) {
+        if ( $this->status == $status && $this->isRejected() ) {
+            // Trigger Kyck Transaction Reject Event
+            event(new KyckTransactionRejected($transaction));
             return true;
         } elseif ( $this->isProccessed() && self::checkKyckStatus($status, 'accepted') ) {
            // Send Pickup Ready Notification
@@ -259,12 +261,12 @@ trait HasKyckTransaction {
             return true;
         } elseif ( $this->isPickupReady() && self::checkKyckStatus($status, 'completed') ) {
             // Send Transaction Compeleted Notification
-            event(new TransactionCompleted($transaction));
+            event(new KyckTransactionCompleted($transaction));
             $this->status = $status;
             return true;
         } elseif ( $this->status != "Success" && self::checkKyckStatus($status, 'completed') ) {
             // Send Transaction Compeleted Notification
-            event(new TransactionCompleted($transaction));
+            event(new KyckTransactionCompleted($transaction));
             $this->status = $status;
             return true;
         }
