@@ -52,7 +52,7 @@ trait KyckPayeeTrait {
     /**
      * Get or create payee object
      *
-     * @return mixed
+     * @return Unbank\Kyckglobal\Payee|null
      */
     public function getOrCreatePayee() {
         if ( empty($this->payee) ) {
@@ -61,6 +61,11 @@ trait KyckPayeeTrait {
             }
 
             $user = $this;
+
+            if ( empty($user->email_verified_at) ) {
+                return null;
+            }
+
             $payee = Payee::where('user_id', $user->id)
                 ->orWhere('email', $user->email)
                 ->first();
