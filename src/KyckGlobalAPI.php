@@ -4,6 +4,7 @@ namespace Unbank\Kyckglobal;
 
 use Illuminate\Support\Facades\Http;
 use Osoobe\Utilities\Helpers\Utilities;
+use Unbank\Kyckglobal\Events\API\KyckGetCashoutLocationAPIError;
 use Unbank\Kyckglobal\Events\PayeeCreated;
 use Unbank\Kyckglobal\Events\PayeeError;
 use Unbank\Kyckglobal\Events\PayeeUpdated;
@@ -329,7 +330,7 @@ class KyckGlobalAPI
      * @param integer $distance
      * @return void
      */
-    public function getCashOutATMLocationsByZipCode(string $zipCode, int $distance = 25)
+    public function getCashOutATMLocationsByZipCode(string $zipCode, int $distance = 25, int $limit = 30)
     {
 
         $curl = curl_init();
@@ -345,7 +346,7 @@ class KyckGlobalAPI
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => '{
             "postalCode" : "'.$zipCode.'",
-            "records": 30,
+            "records": "'.$limit.'",
             "dblDistance": ' . $distance . '
             }',
             CURLOPT_HTTPHEADER => array(
@@ -359,6 +360,20 @@ class KyckGlobalAPI
 
         curl_close($curl);
         $data = json_decode($response, true);
+        if ( !empty($data['status']) && is_string($data['data']) ) {
+            event(new KyckGetCashoutLocationAPIError(
+                [
+                    "method" => "POST",
+                    "payload" => [
+                        "postalCode" => $zipCode,
+                        "dblDistance" => $distance,
+                        "records" => $limit
+                    ]
+                ],
+                $response
+            ));
+        }
+
         return $data;
     }
 
@@ -530,12 +545,10 @@ class KyckGlobalAPI
      * @return mixed                    Returns the json response for the KyckGlobal API Endpoint.
      */
     public function getPaymentStatement(string $reference_id): array {
-
         $response = Http::withHeaders([
             'Authorization' => $this->token
         ])->get("$this->api_url/apis/getPayStub/$reference_id");
         return $response->json();
-
     }
 
     /**
