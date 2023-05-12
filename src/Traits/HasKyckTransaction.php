@@ -202,7 +202,7 @@ trait HasKyckTransaction {
      * @return boolean
      */
     public function isNcrPay360(): bool {
-        return $this->service_method == 'ncrpay360';
+        return strtolower($this->service_method) == 'ncrpay360';
     }
 
     /**
@@ -211,7 +211,7 @@ trait HasKyckTransaction {
      * @return boolean
      */
     public function isPayPal(): bool {
-        return $this->service_method == 'paypal';
+        return strtolower($this->service_method) == 'paypal';
     }
 
     /**
@@ -239,7 +239,7 @@ trait HasKyckTransaction {
      * @return boolean
      */
     public function isVenmo(): bool {
-        return $this->service_method == 'venmo';
+        return strtolower($this->service_method) == 'venmo';
     }
 
     /**
