@@ -1,6 +1,5 @@
 <?php
-
-namespace Unbank\Kyckglobal\Factories;
+namespace Unbank\Kyckglobal\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Unbank\Kyckglobal\AchAccount;
