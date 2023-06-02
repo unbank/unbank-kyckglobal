@@ -4,6 +4,7 @@ namespace Unbank\Kyckglobal\Traits;
 
 use Osoobe\Utilities\Helpers\Str;
 use Osoobe\Utilities\Helpers\Utilities;
+use Unbank\Kyckglobal\AchAccount;
 use Unbank\Kyckglobal\Events\PayeeCreated;
 use Unbank\Kyckglobal\Events\PayeeNotFound;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
@@ -37,6 +38,16 @@ trait KyckPayeeTrait {
     public function paypalAccount()
     {
         return $this->hasOne(PayPalAccount::class, 'user_id');
+    }
+
+    /**
+     * Get the ACH Account of the user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function achAccount()
+    {
+        return $this->hasOne(AchAccount::class);
     }
 
     /**
@@ -222,10 +233,12 @@ trait KyckPayeeTrait {
         $payee = $this->getOrCreatePayee();
         $has_paypal = !empty($this->paypalAccount );
         $has_venmo = !empty($this->venmoAccount );
+        $has_ach = !empty($this->achAccount);
 
         $paypalAllocation = 0;
         $venmoAllocation = 0;
         $ncrpay360Allocation = 0;
+        $achAllocation = 0;
 
         switch (strtolower($method)) {
             case 'ncrpay360':
@@ -246,6 +259,10 @@ trait KyckPayeeTrait {
                 } else {
                     $ncrpay360Allocation = 100;
                 }
+                break;
+
+            case 'ach':
+                $achAllocation = 100;
                 break;
 
             default:
@@ -291,6 +308,18 @@ trait KyckPayeeTrait {
                 ];
                 $data["venmo"] = true;
                 $data["venmoAllocation"] = $venmoAllocation;
+            }
+
+            // Venmo account info
+            if ( $has_ach ) {
+                $data['paymentTypes'][] = "ach";
+                $data['payeeFinancialAccounts'] = [
+                    'routingNumber' => $this->achAccount->routing_number,
+                    'accountNumber' => $this->achAccount->account_number,
+                    'accountName' => $this->achAccount->account_name,
+                    'accountType' => $this->achAccount->account_type,
+                    'allocation'=> $achAllocation
+                ];
             }
         } catch (\Throwable $th) {
             logger($th->getMessage(), [

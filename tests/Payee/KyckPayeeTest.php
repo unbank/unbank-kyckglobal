@@ -2,6 +2,7 @@
 namespace Unbank\Kyckglobal\Tests\Payee;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Unbank\Kyckglobal\AchAccount;
 use Unbank\Kyckglobal\Payee;
 use Unbank\Kyckglobal\Tests\TestCase;
 use Unbank\Kyckglobal\Traits\KyckPayeeTrait;
@@ -17,9 +18,10 @@ class KyckPayeeTest extends TestCase {
         $this->kyckObject = new class {
             use KyckPayeeTrait;
         };
+        $this->kyckObject->phone_number_base = "+1 876 555 5555";
 
         $this->kyckObject->payee = Payee::factory()->create();
-        $this->kyckObject->phone_number_base = "+1 876 555 5555";
+        $this->kyckObject->achAccount = AchAccount::factory()->create();
     }
 
     /**
@@ -27,9 +29,7 @@ class KyckPayeeTest extends TestCase {
      */
     public function test_can_use_kyc_payee_trait() {
         $payee = $this->kyckObject->generateAllocationData();
-
         $this->assertIsArray($payee);
-
     }
 
     /**
@@ -62,6 +62,20 @@ class KyckPayeeTest extends TestCase {
         $payee = $this->kyckObject->generateAllocationData('ach');
 
         $this->assertIsArray($payee);
+
+        $this->assertArrayHasKey('payeeId', $payee);
+        $this->assertArrayHasKey('payeeFinancialAccounts', $payee);
+        $this->assertArrayHasKey('routingNumber', $payee['payeeFinancialAccounts']);
+        $this->assertArrayHasKey('accountNumber', $payee['payeeFinancialAccounts']);
+        $this->assertArrayHasKey('accountType', $payee['payeeFinancialAccounts']);
+        $this->assertArrayHasKey('allocation', $payee['payeeFinancialAccounts']);
+
+        $this->assertIsArray($payee['paymentTypes']);
+        $this->assertEquals('NCRpay360', $payee['paymentTypes'][0]);
+        $this->assertEquals('ach', $payee['paymentTypes'][1]);
+
+        $this->assertEquals(100, $payee['payeeFinancialAccounts']['allocation']);
+
     }
     /**
      * @group Payee
