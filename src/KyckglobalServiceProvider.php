@@ -24,7 +24,10 @@ class KyckglobalServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->loadMigrationsFrom(realpath(__DIR__.'/../database/migrations'));
+        $this->publishes([
+            realpath(__DIR__.'/../database/migrations') => database_path('migrations')
+        ], 'kyck-migrations');
+
         $this->app->singleton('kyckglobal', function($app) {
             return new KyckGlobalAPI(
                 config('kyckglobal.username'),
