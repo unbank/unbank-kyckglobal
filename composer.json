@@ -15,12 +15,14 @@
     "require": {
         "guzzlehttp/guzzle": "^7.3",
         "illuminate/support": "^7.0|^8.0",
-        "osoobe/laravel-utilities": "*",
-        "osoobe/laravel-traits": "*"
+        "osoobe/laravel-utilities": "dev-master",
+        "osoobe/laravel-traits": "dev-master",
+        "doctrine/dbal": "^3.6"
     },
     "autoload": {
         "psr-4": {
-            "Unbank\\Kyckglobal\\": "./src"
+            "Unbank\\Kyckglobal\\": "./src",
+            "Unbank\\Kyckglobal\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
