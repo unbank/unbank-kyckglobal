@@ -16,14 +16,10 @@ class CreateAchAccountTable extends Migration
         Schema::create('ach_account', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-
-            /*
-             *  Payee Foreign Key would require pulling in more migrations
-             *  eg. User table, needs testing
-             */
-            $table->integer('payee_id');
-            $table->string('routing_number')->nullable();
-            $table->string('account_number')->nullable();
+            $table->integer('payee_id')->nullable();
+            $table->foreignId('user_id')->nullable();
+            $table->string('routing_number')->unique()->nullable();
+            $table->string('account_number')->unique()->nullable();
             $table->string('account_name')->nullable();
             $table->string('account_type')->nullable();
             $table->string('data')->nullable();
