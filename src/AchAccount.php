@@ -10,7 +10,7 @@ class AchAccount extends Model {
     use HasFactory;
     use BelongsToUser;
 
-    protected $table="ach_account";
+    protected $table="ach_accounts";
 
     protected $fillable = [
         'payee_id',
