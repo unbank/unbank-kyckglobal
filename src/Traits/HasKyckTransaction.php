@@ -434,10 +434,7 @@ trait HasKyckTransaction {
             if ( ! $this->hasValidStatus() ) {
                 $this->status = "sent";
             }
-
-            // $this->ach_type = $data['accept'][0]['achType'];
-            $this->kyck_reference_Id = $data['accept'][0]["paymentDetails"][0]["Reference_ID"];
-            // $this->payment_method = $data['accept'][0]["paymentDetails"][0]["payeePaymentMethod"];
+            $this->kyck_reference_id = $data['accept'][0]["paymentDetails"][0]["Reference_ID"];
         }
         if ( $save ) {
             $this->save();
