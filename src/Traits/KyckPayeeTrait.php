@@ -187,12 +187,11 @@ trait KyckPayeeTrait {
             'payeeDetails' => array (
                 'payeeFirstName' => $name->first_name,
                 'payeeLastName' => $name->last_name,
-                'payeeMiddleName' => $name->middle_name,
                 'pNumber' => substr($this->phone_number_base, -10)
             ),
             'contactInfo' => array (
                 'mobile' => substr($this->phone_number_base, -10),
-                'sendSMS' => true,
+                'sendSMS' => false,
             ),
             'userDisabled' => false,
             'payeeStatus' => "Onboarded",
@@ -201,6 +200,10 @@ trait KyckPayeeTrait {
                 "ncrPay360Allocation" => 100
             ]
         ];
+
+        if ( !empty($name->middle_name) ) {
+            $postData['payeeDetails']['payeeMiddleName'] = $name->middle_name;
+        }
 
         if ( !empty($this->main_address->street_address) ) {
             $postData['payeeDetails']['pAddress'] = $this->main_address->street_address;
