@@ -89,6 +89,8 @@ class KyckGlobalAPI
         ])->post("$this->api_url/apis/singlePayeeCreatingAPI", $payeeData);
 
         $result = $response->json();
+
+
         if ( empty($result) ) {
             event(new PayeeError($user, "No result returned", $result));
             return [
@@ -97,7 +99,7 @@ class KyckGlobalAPI
             ];
         }
 
-        if ( ! $result['success'] ) {
+        if ( empty($result['success']) || !empty($result['success']) && ! $result['success'] ) {
             event(new PayeeError($user, "Unable to create payee", $result));
             return [
                 false,
