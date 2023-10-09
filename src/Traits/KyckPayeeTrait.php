@@ -188,23 +188,35 @@ trait KyckPayeeTrait {
                 'payeeFirstName' => $name->first_name,
                 'payeeLastName' => $name->last_name,
                 'payeeMiddleName' => $name->middle_name,
-                'pNumber' => substr($this->phone_number_base, -10),
-                'pAddress' => Utilities::getObjectValue($this->main_address, 'street_address', ''),
-                'pcity' => Utilities::getObjectValue($this->main_address, 'city', ''),
-                'pstate' => Utilities::getObjectValue($this->main_address, 'state', ''),
-                'pcountry' => Utilities::getObjectValue($this->main_address, 'country', '')
+                'pNumber' => substr($this->phone_number_base, -10)
             ),
             'contactInfo' => array (
                 'mobile' => substr($this->phone_number_base, -10),
                 'sendSMS' => true,
             ),
             'userDisabled' => false,
-            'payeeStatus' => ( $this->kyckPayee )?  $this->kyckPayee->status : false,
+            'payeeStatus' => "Onboarded",
             "paymentTypes" => ["NCRpay360"],
             "ncrPay360" => [
                 "ncrPay360Allocation" => 100
             ]
         ];
+
+        if ( !empty($this->main_address->street_address) ) {
+            $postData['payeeDetails']['pAddress'] = $this->main_address->street_address;
+        }
+        if ( !empty($this->main_address->city) ) {
+            $postData['payeeDetails']['pcity'] = $this->main_address->city;
+        }
+        if ( !empty($this->main_address->state) ) {
+            $postData['payeeDetails']['pstate'] = $this->main_address->pstate;
+        }
+        if ( !empty($this->main_address->country) ) {
+            $postData['payeeDetails']['pcountry'] = $this->main_address->country;
+        }
+        if ( !empty($this->main_address->zip_code) ) {
+            $postData['payeeDetails']['ppostalCode'] = $this->main_address->zip_code;
+        }
 
         return $postData;
     }
