@@ -69,6 +69,18 @@ class KyckGlobalAPI
         return $status;
     }
 
+    /**
+     * Get token
+     *
+     * @return string
+     */
+    public function getToken(): string {
+        if ( empty($this->token) ) {
+            $this->auth();
+        }
+        return $this->token;
+    }
+
 
     /**
      * Create Payee
@@ -179,10 +191,56 @@ class KyckGlobalAPI
         ];
     }
 
-    public function addPushToCardDetails($user, $nameOnCard, $cardNumber, $year, $month, $cvv, $street, $postalCode, $allocation=0) {
+    /**
+     * Add Card to Payee Financial Account
+     * AddCard to Payee Financial Accounts As Push-To-Card
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1giftCard/post
+     *
+     * @param \App\Models\User $user
+     * @param string $nameOnCard
+     * @param string $cardNumber
+     * @param string $year
+     * @param string $month
+     * @param string $cvv
+     * @param string $street
+     * @param string $city          Mandatory field for Mastercard: ex: Dallas
+     * @param string $state         Mandatory field for Mastercard: ex: Dallas
+     * @param string $postalCode
+     * @param integer $allocation
+     * @param bool $p2p             Optional, for Mastercard Only (Person-to-Person Payments): ex: false
+     * @return mixed
+     */
+    public function addPushToCardDetails(
+        $user,
+        $nameOnCard,
+        $cardNumber,
+        $year,
+        $month,
+        $cvv,
+        $street,
+        $postalCode,
+        $city=null,
+        $state=null,
+        $allocation=0
+    ) {
+
+        // Date of birth is required
+        if ( empty($user->dob) ) {
+            return (object) [
+                'status' => false,
+                'data' => [],
+                'result' => [
+                    "success" => false,
+                    "msg" => "No date of birth was provided",
+                    "reason" => ""
+                ]
+            ];
+        }
+
         $data = [
             "payerId" => $this->payer_id,
             'payeeId' => $user->payee_id,
+            "dateOfBirth" => $user->dob->format('Y-m-d'),
             "payeePushToCard" => [
                 "nameOnCard" => $nameOnCard,
                 "cardNumber" => $cardNumber,
@@ -194,6 +252,14 @@ class KyckGlobalAPI
                 "allocation" => $allocation
             ]
         ];
+
+        if ( !empty($city) ) {
+            $data["payeePushToCard"]['city'] = $city;
+        }
+        if ( !empty($state) ) {
+            $data["payeePushToCard"]['state'] = $state;
+        }
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $this->token
@@ -208,7 +274,31 @@ class KyckGlobalAPI
             ];
         }
 
-        return $result;
+        return (object) [
+            'status' => true,
+            'data' => [],
+            'result' => $result
+        ];
+
+    }
+
+    /**
+     * Push To Card Widget - Token Request
+     * Make available a widget for Visa Push To Card functionality.
+     *
+     * @param string $unique_id
+     * @param string $payee_email
+     * @return mixed
+     */
+    public function pushToCardAuthToken(string $unique_id, string $payee_email) {
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->post("$this->api_url/apis/pushToCardAuthToken", [
+            "uniqueId" => $unique_id,
+            "payeeEmail" => $payee_email
+        ]);
+        return $response->json();
     }
 
 
@@ -224,6 +314,60 @@ class KyckGlobalAPI
     {
         $payeeData = $user->generateAllocationData($method, $options);
         $payeeData["payerId"] = $this->payer_id;
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->put("$this->api_url/apis/singlePayeeUpdate", $payeeData);
+
+        $result = $response->json();
+        if ( empty($result) ) {
+            return (object) [
+                'status' => false,
+                'data' => [],
+                'result' => $result
+            ];
+        }
+
+        $result["payeeId"] = $user->payee->payee_id;
+        if ($result['success'] != 'true') {
+            return (object) [
+                'status' => false,
+                "data" => $result,
+                'result' => $result
+            ];
+        }
+
+        $payee = Payee::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                "service_provider" => 'kyck',
+                "is_active" => 1,
+                "verified" => 1
+            ]
+        );
+        return (object) [
+            'status' => true,
+            'data' => $payee,
+            'result' => $result
+        ];
+    }
+
+
+    /**
+     * Update Payee Allocation
+     *
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1singlePayeeUpdate/put
+     *
+     * @param \App\Models\User $user
+     * @return object   Keys: status, data, result
+     */
+    public function updateMultipleAllocation($user, array $allocationWithAccountIds = [] )
+    {
+        $payeeData = [
+            "payeeId" => $user->payee_id,
+            "payerId" => $this->payer_id,
+            "allocationWithAccountId" => $allocationWithAccountIds
+        ];
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $this->token
@@ -580,7 +724,7 @@ class KyckGlobalAPI
      * @param string $tax_id
      * @param string $first_name
      * @param string $last_name
-     * @return void
+     * @return mixed
      */
     public function tinCheck(string $tax_id, string $first_name, string $last_name) {
 
@@ -594,9 +738,6 @@ class KyckGlobalAPI
         ]);
         return $response->json();
     }
-
-
-
 
 
 }

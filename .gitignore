@@ -2,3 +2,6 @@
 .env
 .phpunit.result.cache
 .idea
+
+# Merge request files
+*.orig

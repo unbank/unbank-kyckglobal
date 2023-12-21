@@ -5,6 +5,7 @@ namespace Unbank\Kyckglobal\Traits;
 use Osoobe\Utilities\Helpers\Str;
 use Osoobe\Utilities\Helpers\Utilities;
 use Unbank\Kyckglobal\AchAccount;
+use Unbank\Kyckglobal\AllocationWithAccount;
 use Unbank\Kyckglobal\Events\PayeeCreated;
 use Unbank\Kyckglobal\Events\PayeeNotFound;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
@@ -48,6 +49,16 @@ trait KyckPayeeTrait {
     public function achAccount()
     {
         return $this->hasOne(AchAccount::class);
+    }
+
+    /*
+     * Get all of the kyck accounts for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function kyckAccounts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AllocationWithAccount::class, 'user_id');
     }
 
     /**
@@ -254,6 +265,7 @@ trait KyckPayeeTrait {
         $venmoAllocation = 0;
         $ncrpay360Allocation = 0;
         $achAllocation = 0;
+        $pushToCardAllocation = 0;
 
         switch (strtolower($method)) {
             case 'ncrpay360':
@@ -280,6 +292,10 @@ trait KyckPayeeTrait {
                 $achAllocation = 100;
                 break;
 
+            case 'pushtocard':
+                $pushToCardAllocation = 0;
+                break;
+
             default:
                 $ncrpay360Allocation = 100;
                 break;
@@ -300,7 +316,8 @@ trait KyckPayeeTrait {
             ],
             "ncrPay360" => [
                 "ncrPay360Allocation" => $ncrpay360Allocation
-            ]
+            ],
+            'pushToCardAllocation' => $pushToCardAllocation
         ];
 
         // Paypal account info
@@ -342,6 +359,33 @@ trait KyckPayeeTrait {
             ]);
         }
         return $data;
+    }
+
+    /**
+     * Generate allocation with account ids
+     *
+     * @param array|null $account_with_allocation, key:value pair maps to account_id:allocation
+     * @return array
+     */
+    public function generateAllocationWithAccountIds(?array $account_with_allocation = []) {
+        $accounts = $this->kyckAccounts()
+            ->payeeId($this->payee_id)
+            ->get();
+
+        $allocations = [];
+        foreach($accounts as $account) {
+            $default_allocation = 0;
+            if ( !empty($account_with_allocation[$account->account_id]) ) {
+                $default_allocation = $account_with_allocation[$account->account_id];
+            }
+
+            $allocations[] = [
+                "payeeDisbursementAccountId" => $account->account_id,
+                "allocation" =>  $default_allocation
+            ];
+        }
+
+        return $allocations;
     }
 
 
