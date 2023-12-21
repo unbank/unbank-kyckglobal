@@ -5,9 +5,9 @@ namespace Unbank\Kyckglobal;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Osoobe\Utilities\Traits\HasLocation;
+use Osoobe\LaravelTraits\Support\HasLocation;
+use Osoobe\LaravelTraits\Support\TimeDiff;
 use Osoobe\Utilities\Traits\HasVerified;
-use Osoobe\Utilities\Traits\TimeDiff;
 
 class PayeeAddress extends Model
 {
