@@ -56,12 +56,12 @@ class AllocationWithAccount extends Model
     protected static function booted()
     {
         static::creating(function ($allocation) {
-            $allocation->account_reference = $allocation->disbursable->getKyckDisbursemntAccountIdentifier();
+            $allocation->account_reference = $allocation->disbursable->getKyckDisbursemntAccountReference();
             $allocation->account_type = $allocation->disbursable->getKyckDisbursemntAccountType();
         });
 
         static::updating(function ($allocation) {
-            $allocation->account_reference = $allocation->disbursable->getKyckDisbursemntAccountIdentifier();
+            $allocation->account_reference = $allocation->disbursable->getKyckDisbursemntAccountReference();
             $allocation->account_type = $allocation->disbursable->getKyckDisbursemntAccountType();
         });
     }

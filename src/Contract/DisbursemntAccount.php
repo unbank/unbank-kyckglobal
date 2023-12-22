@@ -15,7 +15,7 @@ interface DisbursemntAccount {
     /**
      * Get kyck disbursement account identifier
      */
-    public function getKyckDisbursemntAccountIdentifier();
+    public function getKyckDisbursemntAccountReference();
 
 
     /**

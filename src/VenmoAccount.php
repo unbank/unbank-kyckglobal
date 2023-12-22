@@ -48,7 +48,7 @@ class VenmoAccount extends Model implements DisbursemntAccount
     /**
      * Get kyck disbursement account identifier
      */
-    public function getKyckDisbursemntAccountIdentifier() {
+    public function getKyckDisbursemntAccountReference() {
         return $this->phone_number;
     }
 
