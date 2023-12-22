@@ -25,15 +25,46 @@ class AllocationWithAccount extends Model
         'account_id',
         'account_type',
         'allocation',
-        'account_method_id',
-        'account_method_type'
+        'account_reference',
+        'disbursable_id',
+        'disbursable_type'
     ];
 
     protected $table = "kyck_allocation_with_accounts";
 
     protected $casts = [
-        'account_id' => 'int'
+        'account_id' => 'int',
+        'allocation' => 'int'
     ];
+
+
+    /**
+     * Get kyck disbusrsement account
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     */
+    public function disbursable(): \Illuminate\Database\Eloquent\Relations\MorphTo {
+        return $this->morphTo();
+    }
+
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::creating(function ($allocation) {
+            $allocation->account_reference = $allocation->disbursable->getKyckDisbursemntAccountReference();
+            $allocation->account_type = $allocation->disbursable->getKyckDisbursemntAccountType();
+        });
+
+        static::updating(function ($allocation) {
+            $allocation->account_reference = $allocation->disbursable->getKyckDisbursemntAccountReference();
+            $allocation->account_type = $allocation->disbursable->getKyckDisbursemntAccountType();
+        });
+    }
 
     /**
      * Scope a query to only include push to card account type
@@ -65,6 +96,29 @@ class AllocationWithAccount extends Model
      */
     public function scopePayeeId($query, string $payee_id) {
         return $query->where('payee_id', $payee_id);
+    }
+
+    /**
+     * Scope a query to only include account id
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $query
+     * @param integer $account_id
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAccountId($query, int $account_id) {
+        return $query->where('account_id', $account_id);
+    }
+
+
+    /**
+     * Scope a query to only include account reference
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $query
+     * @param integer $account_reference
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAccountReference(R$query, string $account_reference) {
+        return $query->where('account_reference', $account_reference);
     }
 
 }

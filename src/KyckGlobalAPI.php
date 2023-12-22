@@ -399,6 +399,15 @@ class KyckGlobalAPI
                 "verified" => 1
             ]
         );
+
+        // Update locations
+        foreach($allocationWithAccountIds as $account_id => $allocation) {
+            $user->kyckAccounts()->accountId($account_id)->update([
+                'allocation' => $allocation,
+                'payee_id' => $user->payee_id
+            ]);
+        }
+
         return (object) [
             'status' => true,
             'data' => $payee,
