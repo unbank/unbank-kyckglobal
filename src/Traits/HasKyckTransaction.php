@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Osoobe\Laravel\Settings\Models\AppMeta;
 use Osoobe\Utilities\Helpers\Str;
 use Unbank\Kyckglobal\Events\KyckTransactionCompleted;
+use Unbank\Kyckglobal\Events\KyckTransactionError;
 use Unbank\Kyckglobal\Events\KyckTransactionRejected;
 use Unbank\Kyckglobal\Events\PickupReady;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
@@ -397,19 +398,30 @@ trait HasKyckTransaction {
         if ( $data['success'] && !empty($data['payStub'])) {
             $this->data = $data;
             $status = $data['payStub']['status'];
-            $this->triggerKyckStatusEvent($status);
-            $this->status = $data['payStub']['status'];
-            $this->ach_type = $data['payStub']['achType'];
-            // $this->payment_method = $data['payStub']['payeePaymentMethod'];
+            if ( empty($status) ) {
+                $this->status = "Error";
+                event(new KyckTransactionError(
+                    $this,
+                    "Kyck Error: ".$data['payStub']["pendingReason"],
+                    $data
+                ));
+            } else {
+                $this->triggerKyckStatusEvent($status);
+                $this->status = $status;
+                $this->ach_type = $data['payStub']['achType'];
+                // $this->payment_method = $data['payStub']['payeePaymentMethod'];
+            }
 
-            try {
-                $this->pickup_cash_code = $data['payStub']["responseData"]["strAuthorizationCode"];
-            } catch (\Throwable $th) {
-                logger("Pickup cash code error", [
-                    "context" => 'Transaction:'.$this->id,
-                    'message' => $th->getMessage(),
-                    'file' => "HasKyckTransaction"
-                ]);
+            if ( $this->isNcrPay360() ) {
+                try {
+                    $this->pickup_cash_code = $data['payStub']["responseData"]["strAuthorizationCode"];
+                } catch (\Throwable $th) {
+                    logger("Pickup cash code error", [
+                        "context" => 'Transaction:'.$this->id,
+                        'message' => $th->getMessage(),
+                        'file' => "HasKyckTransaction"
+                    ]);
+                }
             }
 
             if ( $save ) {

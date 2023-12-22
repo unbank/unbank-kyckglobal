@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Osoobe\LaravelTraits\Support\BelongsToUser;
 use Osoobe\LaravelTraits\Support\IsDefault;
+use Unbank\Kyckglobal\Contract\DisbursemntAccount;
+use Unbank\Kyckglobal\Traits\HasKyckAccountAllocation;
 
-class PayPalAccount extends Model
+class PayPalAccount extends Model implements DisbursemntAccount
 {
     use BelongsToUser;
     use HasFactory;
+    use HasKyckAccountAllocation;
     use IsDefault;
 
     protected $table = "paypal_accounts";
@@ -33,6 +36,22 @@ class PayPalAccount extends Model
     protected $casts = [
         'data' => 'array',
     ];
+
+    /**
+     * Get kyck disbursement account type
+     *
+     * @return string
+     */
+    public function getKyckDisbursemntAccountType(): string {
+        return "PayPal";
+    }
+
+    /**
+     * Get kyck disbursement account identifier
+     */
+    public function getKyckDisbursemntAccountIdentifier() {
+        return $this->email;
+    }
 
 
 }

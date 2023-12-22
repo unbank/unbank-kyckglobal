@@ -25,8 +25,9 @@ class AllocationWithAccount extends Model
         'account_id',
         'account_type',
         'allocation',
-        'account_method_id',
-        'account_method_type'
+        'disbursable_account',
+        'disbursable_id',
+        'disbursable_type'
     ];
 
     protected $table = "kyck_allocation_with_accounts";
@@ -34,6 +35,43 @@ class AllocationWithAccount extends Model
     protected $casts = [
         'account_id' => 'int'
     ];
+
+
+    /**
+     * Get kyck disbusrsement account
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     */
+    public function disbursable(): \Illuminate\Database\Eloquent\Relations\MorphTo {
+        return $this->morphTo();
+    }
+
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::creating(function ($allocation) {
+            if ( empty($allocation->disbursable_account) ) {
+                $allocation->disbursable_account = $allocation->disbursable->getKyckDisbursemntAccountIdentifier();
+            }
+            if ( empty($allocation->account_type) ) {
+                $allocation->account_type = $allocation->disbursable->getKyckDisbursemntAccountType()();
+            }
+        });
+
+        static::updating(function ($allocation) {
+            if ( empty($allocation->disbursable_account) ) {
+                $allocation->disbursable_account = $allocation->disbursable->getKyckDisbursemntAccountIdentifier();
+            }
+            if ( empty($allocation->account_type) ) {
+                $allocation->account_type = $allocation->disbursable->getKyckDisbursemntAccountType()();
+            }
+        });
+    }
 
     /**
      * Scope a query to only include push to card account type
