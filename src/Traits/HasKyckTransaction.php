@@ -10,6 +10,7 @@ use Unbank\Kyckglobal\Events\KyckTransactionError;
 use Unbank\Kyckglobal\Events\KyckTransactionRejected;
 use Unbank\Kyckglobal\Events\PickupReady;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
+use Unbank\Kyckglobal\Helpers\CashoutHelper;
 
 trait HasKyckTransaction {
 
@@ -88,7 +89,7 @@ trait HasKyckTransaction {
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeNotReturned($query) {
-        return $query->where('status', '!=', 'Returned');
+        return $query->where('status', '!=', CashoutHelper::STATUS_RETURNED);
     }
 
     /**
@@ -99,7 +100,7 @@ trait HasKyckTransaction {
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopePickupReady($query) {
-        return $query->where('status', 'Pickup Ready');
+        return $query->where('status', CashoutHelper::STATUS_PICKUP_READY);
     }
 
 
@@ -112,8 +113,13 @@ trait HasKyckTransaction {
     public function scopeSentToKyck($query) {
         return $query->kyck()
             ->whereIn('status', [
-                'Pickup Ready', 'sent', 'Submitted', 'Success', 'Returned',
-                'Proccessing', 'Processing'
+                CashoutHelper::STATUS_PICKUP_READY,
+                CashoutHelper::STATUS_SENT,
+                CashoutHelper::STATUS_SUBMITTED,
+                CashoutHelper::STATUS_SUCCESS,
+                CashoutHelper::STATUS_RETURNED,
+                'Proccessing',
+                CashoutHelper::STATUS_PROCESSING
             ]);
     }
 
@@ -444,7 +450,7 @@ trait HasKyckTransaction {
         $this->data = $data;
         if ( $data['success'] && !empty($data['accept'])) {
             if ( ! $this->hasValidStatus() ) {
-                $this->status = "sent";
+                $this->status = CashoutHelper::STATUS_SENT;
             }
             $this->kyck_reference_id = $data['accept'][0]["paymentDetails"][0]["Reference_ID"];
         }
@@ -460,7 +466,7 @@ trait HasKyckTransaction {
      * @return void
      */
     public function cancelPayment($save=false) {
-        $this->status = "Rejected";
+        $this->status = CashoutHelper::STATUS_REJECTED;
         $this->is_active = 0;
         if ( $save ) {
             $this->save();
