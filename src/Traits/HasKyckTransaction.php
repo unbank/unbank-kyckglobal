@@ -56,7 +56,8 @@ trait HasKyckTransaction {
      */
     public function kyckAccountAllocation(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(AllocationWithAccount::class, 'disbursement_account_id', 'id');
+        return $this->belongsTo(AllocationWithAccount::class, 'disbursement_account_id', 'account_id')
+            ->where('user_id', $this->user_id);
     }
 
     /**
