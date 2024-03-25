@@ -18,6 +18,16 @@ trait HasKyckAccountAllocation {
 
 
     /**
+     * Disbursements
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function disbursements(): \Illuminate\Database\Eloquent\Relations\MorphMany  {
+        return $this->morphMany(config('kyckglobal.disbursement_class'), 'disbursable');
+    }
+
+
+    /**
      * Get kyck_disbursement_account_id
      *
      * @return null|integer

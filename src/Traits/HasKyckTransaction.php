@@ -5,6 +5,7 @@ namespace Unbank\Kyckglobal\Traits;
 use Carbon\Carbon;
 use Osoobe\Laravel\Settings\Models\AppMeta;
 use Osoobe\Utilities\Helpers\Str;
+use Unbank\Kyckglobal\AllocationWithAccount;
 use Unbank\Kyckglobal\Events\KyckTransactionCompleted;
 use Unbank\Kyckglobal\Events\KyckTransactionError;
 use Unbank\Kyckglobal\Events\KyckTransactionRejected;
@@ -37,6 +38,25 @@ trait HasKyckTransaction {
                 $item->expiry_date = now()->addHours($expire_in_hours);
             }
         });
+    }
+
+    /**
+     * Cashout method
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     */
+    public function disbursable():  \Illuminate\Database\Eloquent\Relations\MorphTo
+    {
+        return $this->morphTo(__FUNCTION__, 'disbursable_type', 'disbursable_id');
+    }
+
+    /**
+     * Get the kyck account allocation that owns the HasKyckTransaction
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function kyckAccountAllocation(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(AllocationWithAccount::class, 'disbursement_account_id', 'id');
     }
 
     /**
