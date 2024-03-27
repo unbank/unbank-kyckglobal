@@ -16,6 +16,7 @@ class AchAccount extends Model implements DisbursemntAccount {
     protected $table="ach_accounts";
 
     protected $fillable = [
+        'user_id',
         'payee_id',
         'routing_number',
         'account_number',
