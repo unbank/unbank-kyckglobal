@@ -3,6 +3,7 @@
 namespace Unbank\Kyckglobal\Traits;
 
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use Osoobe\Laravel\Settings\Models\AppMeta;
 use Osoobe\Utilities\Helpers\Str;
 use Unbank\Kyckglobal\AllocationWithAccount;
@@ -441,7 +442,7 @@ trait HasKyckTransaction {
 
             if ( $this->isNcrPay360() ) {
                 try {
-                    $this->pickup_cash_code = $data['payStub']["responseData"]["strAuthorizationCode"];
+                    $this->pickup_cash_code = Arr::get($this->data, 'payStub.responseData.strAuthorizationCode', $this->pickup_cash_code);
                 } catch (\Throwable $th) {
                     logger("Pickup cash code error", [
                         "context" => 'Transaction:'.$this->id,
