@@ -749,4 +749,19 @@ class KyckGlobalAPI
     }
 
 
+    public function getBankDetailsByRoutingCode(string $routing_code) {
+        $payload = [
+            "data" => [
+                "routingCode" => $routing_code
+            ]
+        ];
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->post("$this->api_url/apis/getBankDetailsByRoutingCode", $payload);
+        return $response->json();
+    }
+
+
 }
