@@ -3,6 +3,7 @@
 namespace Unbank\Kyckglobal;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Osoobe\Utilities\Helpers\Utilities;
 use Unbank\Kyckglobal\Events\API\KyckGetCashoutLocationAPIError;
 use Unbank\Kyckglobal\Events\PayeeCreated;
@@ -721,9 +722,44 @@ class KyckGlobalAPI
         $response = Http::withHeaders([
             'Authorization' => $this->token
         ])->get("$this->api_url/apis/cancelPayment/$reference_id");
-        return $response->json();
 
+        return $response->json();
     }
+    
+    /**
+     * Repprocess/Reject Payment
+     *
+     * https://api.kyckglobal.com/apis/processOrRejectTransactions
+     *
+     * @param string $reference_id
+     * @param string $action
+     * @param string|null $account_last_4_digits
+     * @param int|null $payee_disbursement_account_id
+     * @return array|mixed
+     */
+    public function reprocessPayment(string $reference_id, string $action, ?string $account_last_4_digits = null, ?int $payee_disbursement_account_id = null
+    ) {
+        
+        $data = [
+            'action' => $action,
+            'ReferenceId' => $reference_id,
+        ];
+
+        if ($account_last_4_digits !== null) {
+            $data['accountNumber'] = $account_last_4_digits;
+        }
+
+        if ($payee_disbursement_account_id !== null) {
+            $data['payeeDisbursementAccountId'] = $payee_disbursement_account_id;
+        }
+
+        $response = Http::withHeaders([
+            'Authorization' => $this->token
+        ])->post("$this->api_url/apis/processOrRejectTransactions", $data);
+        
+        return $response->json();
+    }
+    
 
 
     /**
@@ -745,6 +781,7 @@ class KyckGlobalAPI
             "FirstName" => $first_name,
             "LastName" => $last_name
         ]);
+
         return $response->json();
     }
 
