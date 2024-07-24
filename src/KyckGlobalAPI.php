@@ -725,14 +725,17 @@ class KyckGlobalAPI
 
         return $response->json();
     }
-
+    
     /**
      * Repprocess/Reject Payment
      *
      * https://api.kyckglobal.com/apis/processOrRejectTransactions
      *
      * @param string $reference_id
-     * @return mixed                    Returns the json response for the KyckGlobal API Endpoint.
+     * @param string $action
+     * @param string|null $account_last_4_digits
+     * @param int|null $payee_disbursement_account_id
+     * @return array|mixed
      */
     public function reprocessPayment(string $reference_id, string $action, ?string $account_last_4_digits = null, ?int $payee_disbursement_account_id = null
     ) {
