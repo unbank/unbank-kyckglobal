@@ -734,17 +734,29 @@ class KyckGlobalAPI
      * @param string $reference_id
      * @return mixed                    Returns the json response for the KyckGlobal API Endpoint.
      */
-    public function reprocessPayment($reference_id, $account_last_4_digits, $action) {
+    public function reprocessPayment(string $reference_id, string $action, ?string $account_last_4_digits = null, ?int $payee_disbursement_account_id = null
+    ) {
+        
+        $data = [
+            'action' => $action,
+            'ReferenceId' => $reference_id,
+        ];
+
+        if ($account_last_4_digits !== null) {
+            $data['accountNumber'] = $account_last_4_digits;
+        }
+
+        if ($payee_disbursement_account_id !== null) {
+            $data['payeeDisbursementAccountId'] = $payee_disbursement_account_id;
+        }
+
         $response = Http::withHeaders([
             'Authorization' => $this->token
-        ])->post("$this->api_url/apis/processOrRejectTransactions", [
-            'action' => $action,
-            'accountNumber' => $account_last_4_digits,
-            'ReferenceId' => $reference_id,
-        ]);
+        ])->post("$this->api_url/apis/processOrRejectTransactions", $data);
         
         return $response->json();
     }
+    
 
 
     /**
