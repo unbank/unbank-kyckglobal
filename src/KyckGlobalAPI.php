@@ -725,7 +725,7 @@ class KyckGlobalAPI
 
         return $response->json();
     }
-    
+
     /**
      * Repprocess/Reject Payment
      *
@@ -739,7 +739,7 @@ class KyckGlobalAPI
      */
     public function reprocessPayment(string $reference_id, string $action, ?string $account_last_4_digits = null, ?int $payee_disbursement_account_id = null
     ) {
-        
+
         $data = [
             'action' => $action,
             'ReferenceId' => $reference_id,
@@ -756,10 +756,10 @@ class KyckGlobalAPI
         $response = Http::withHeaders([
             'Authorization' => $this->token
         ])->post("$this->api_url/apis/processOrRejectTransactions", $data);
-        
+
         return $response->json();
     }
-    
+
 
 
     /**
@@ -797,6 +797,23 @@ class KyckGlobalAPI
             'Content-Type' => 'application/json',
             'Authorization' => $this->token
         ])->post("$this->api_url/apis/getBankDetailsByRoutingCode", $payload);
+
+        return $response->json();
+    }
+
+
+    public function cashIn($payee_id, $account_number) {
+        $payload = [
+            'payerId' => $this->payer_id,
+            'payeeId' => $payee_id,
+            'accountNumber' => $account_number
+        ];
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->post("$this->api_url/apis/cashIn", $payload);
+
         return $response->json();
     }
 
