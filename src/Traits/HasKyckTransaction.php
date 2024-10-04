@@ -475,6 +475,7 @@ trait HasKyckTransaction {
                 $this->status = CashoutHelper::STATUS_SENT;
             }
             $this->kyck_reference_id = $data['accept'][0]["paymentDetails"][0]["Reference_ID"];
+            $this->effective_payment_date = $data['accept'][0]["paymentData"]["effectivePaymentDate"];
         }
         if ( $save ) {
             $this->save();
