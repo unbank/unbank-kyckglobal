@@ -475,7 +475,7 @@ trait HasKyckTransaction {
                 $this->status = CashoutHelper::STATUS_SENT;
             }
             $this->kyck_reference_id = $data['accept'][0]["paymentDetails"][0]["Reference_ID"];
-            $this->effective_payment_date = Carbon::createFromFormat('d/m/Y', $data['accept'][0]["paymentData"]["effectivePaymentDate"])->format('Y-m-d');
+            $this->transfer_date = Carbon::createFromFormat('d/m/Y', $data['accept'][0]["paymentData"]["effectivePaymentDate"])->format('Y-m-d');
         }
         if ( $save ) {
             $this->save();
