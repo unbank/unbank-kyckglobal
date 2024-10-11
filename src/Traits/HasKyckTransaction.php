@@ -479,7 +479,7 @@ trait HasKyckTransaction {
             try {
                 $effectivePaymentDate = Arr::get($data, 'accept.0.paymentData.effectivePaymentDate', null);
                 if ( !empty($effectivePaymentDate) ) {
-                    $this->transfer_date = Carbon::createFromFormat('d/m/Y', $effectivePaymentDate);
+                    $this->transfer_date = Carbon::createFromFormat('m/d/Y', $effectivePaymentDate);
                 }
             } catch (\Throwable $th) {
                 logger(get_class($this)." update effectivate date error:", [
