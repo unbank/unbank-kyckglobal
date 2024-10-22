@@ -10,6 +10,7 @@ use Unbank\Kyckglobal\AllocationWithAccount;
 use Unbank\Kyckglobal\Events\KyckTransactionCompleted;
 use Unbank\Kyckglobal\Events\KyckTransactionError;
 use Unbank\Kyckglobal\Events\KyckTransactionRejected;
+use Unbank\Kyckglobal\Events\KyckTransactionReturned;
 use Unbank\Kyckglobal\Events\PickupReady;
 use Unbank\Kyckglobal\Facades\KyckGlobal;
 use Unbank\Kyckglobal\Helpers\CashoutHelper;
@@ -288,6 +289,8 @@ trait HasKyckTransaction {
             event(new PickupReady($transaction));
             $this->status = $status;
             return true;
+        } elseif ( $this->status == CashoutHelper::STATUS_RETURNED ) {
+            event(new KyckTransactionReturned($transaction));
         } elseif ( $this->isPickupReady() && self::checkKyckStatus($status, 'completed') ) {
             // Send Transaction Compeleted Notification
             event(new KyckTransactionCompleted($transaction));
