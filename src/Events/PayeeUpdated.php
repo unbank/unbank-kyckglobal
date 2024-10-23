@@ -16,6 +16,7 @@ class PayeeUpdated
 
 
     public $user;
+    public $payee;
     public $context;
 
      /**
@@ -24,9 +25,10 @@ class PayeeUpdated
       * @param \App\Models\User $user
       * @param mixed ...$context
       */
-    public function __construct($user, ...$context)
+    public function __construct($user, $payee, ...$context)
     {
         $this->user = $user;
+        $this->payee = $payee;
         $this->context = $context;
     }
 

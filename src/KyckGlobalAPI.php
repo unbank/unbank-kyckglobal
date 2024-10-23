@@ -176,7 +176,6 @@ class KyckGlobalAPI
             ];
         }
 
-        event(new PayeeUpdated($user, $result));
         $payee = Payee::updateOrCreate(
             ['user_id' => $user->id],
             [
@@ -185,6 +184,7 @@ class KyckGlobalAPI
                 "verified" => 1
             ]
         );
+        event(new PayeeUpdated($user, $payee, $result));
         return (object) [
             'status' => true,
             'data' => $payee,
