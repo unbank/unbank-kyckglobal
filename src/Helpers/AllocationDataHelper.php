@@ -111,54 +111,63 @@ class AllocationDataHelper {
 
         $accounts = [];
 
-        $ncrpayAccounts = $this->ncrpay360Accounts();
-        if ( !empty($ncrpayAccounts) ) {
-            foreach ($ncrpayAccounts as $account) {
-                $accounts[] = [
-                    "account_type" => AllocationWithAccount::ACCOUNT_TYPE_NCRPAY360,
-                    'account_number' => $account['accountNumber'],
-                    "disbursement_id" => $account["payeeDisbursementAccountId"],
-                    "allocation" => $account['allocation']
-                ];
+        try {
+
+            $ncrpayAccounts = $this->ncrpay360Accounts();
+            if ( !empty($ncrpayAccounts) ) {
+                foreach ($ncrpayAccounts as $account) {
+                    $accounts[] = [
+                        "account_type" => AllocationWithAccount::ACCOUNT_TYPE_NCRPAY360,
+                        'account_number' => $account['accountNumber'],
+                        "disbursement_id" => $account["payeeDisbursementAccountId"],
+                        "allocation" => $account['allocation']
+                    ];
+                }
             }
-        }
 
-        $venmoAccounts = $this->venmoAccounts();
-        if ( !empty($venmoAccounts) ) {
-            foreach ($venmoAccounts as $account) {
-                $accounts[] = [
-                    "account_type" => AllocationWithAccount::ACCOUNT_TYPE_VENMO,
-                    'account_number' => $account['paypalId'],
-                    "disbursement_id" => $account["payeeDisbursementAccountId"],
-                    "allocation" => $account['allocation']
-                ];
+            $venmoAccounts = $this->venmoAccounts();
+            if ( !empty($venmoAccounts) ) {
+                foreach ($venmoAccounts as $account) {
+                    $accounts[] = [
+                        "account_type" => AllocationWithAccount::ACCOUNT_TYPE_VENMO,
+                        'account_number' => $account['paypalId'],
+                        "disbursement_id" => $account["payeeDisbursementAccountId"],
+                        "allocation" => $account['allocation']
+                    ];
+                }
             }
-        }
 
 
-        $paypalAccounts = $this->paypalAccounts();
-        if ( !empty($paypalAccounts) ) {
-            foreach ($paypalAccounts as $account) {
-                $accounts[] = [
-                    "account_type" => AllocationWithAccount::ACCOUNT_TYPE_PAYPAL,
-                    'account_number' => $account['paypalId'],
-                    "disbursement_id" => $account["payeeDisbursementAccountId"],
-                    "allocation" => $account['allocation']
-                ];
+            $paypalAccounts = $this->paypalAccounts();
+            if ( !empty($paypalAccounts) ) {
+                foreach ($paypalAccounts as $account) {
+                    $accounts[] = [
+                        "account_type" => AllocationWithAccount::ACCOUNT_TYPE_PAYPAL,
+                        'account_number' => $account['paypalId'],
+                        "disbursement_id" => $account["payeeDisbursementAccountId"],
+                        "allocation" => $account['allocation']
+                    ];
+                }
             }
-        }
 
 
-        $pushToCardAccounts = $this->pushToCardAccounts();
-        if ( !empty($pushToCardAccounts) ) {
-            foreach ($pushToCardAccounts as $account) {
-                $accounts[] = [
-                    "account_type" => AllocationWithAccount::ACCOUNT_TYPE_PUSH_TO_CARD,
-                    'account_number' => $account['tokenInfo']['paymentInstrument']['last4'] ?? $account['formatAccountNumber'],
-                    "disbursement_id" =>  $account["payeeDisbursementAccountId"],
-                    "allocation" => $account['allocation']
-                ];
+            $pushToCardAccounts = $this->pushToCardAccounts();
+            if ( !empty($pushToCardAccounts) ) {
+                foreach ($pushToCardAccounts as $account) {
+                    $accounts[] = [
+                        "account_type" => AllocationWithAccount::ACCOUNT_TYPE_PUSH_TO_CARD,
+                        'account_number' => $account['tokenInfo']['paymentInstrument']['last4'] ?? $account['formatAccountNumber'],
+                        "disbursement_id" =>  $account["payeeDisbursementAccountId"],
+                        "allocation" => $account['allocation']
+                    ];
+                }
             }
+
+        } catch (\Throwable $th) {
+            logger("Kyck Payee Error: unable to get payee data", [
+                'message' => $th->getMessage(),
+                'trace' => $th->getTrace()
+            ]);
         }
         return $accounts;
 
