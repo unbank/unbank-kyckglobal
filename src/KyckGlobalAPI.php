@@ -403,10 +403,14 @@ class KyckGlobalAPI
 
         // Update locations
         foreach($allocationWithAccountIds as $account_id => $allocation) {
-            $user->kyckAccounts()->accountId($account_id)->update([
-                'allocation' => $allocation,
-                'payee_id' => $user->payee_id
-            ]);
+            try {
+                $user->kyckAccounts()->accountId($account_id)->update([
+                    'allocation' => $allocation,
+                    'payee_id' => $user->payee_id
+                ]);
+            } catch (\Throwable $th) {
+                logger("Unbank Kyck Account Not Found ".$th->getMessage());
+            }
         }
 
         return (object) [
