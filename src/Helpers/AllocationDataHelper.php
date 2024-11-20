@@ -40,7 +40,7 @@ class AllocationDataHelper {
 
         $account = $accounts->where('accountNumber', $phone_number)->first();
         if ( empty($account) ) {
-            $account = $accounts[0];
+            $account = $accounts->last();
         }
         return $account["payeeDisbursementAccountId"];
     }
@@ -60,7 +60,7 @@ class AllocationDataHelper {
 
         $account = $accounts->where('paypalId', $phone_number)->first();
         if ( empty($account) ) {
-            $account = $accounts[0];
+            $account = $accounts->last();
         }
         return $account["payeeDisbursementAccountId"];
     }
@@ -80,7 +80,7 @@ class AllocationDataHelper {
 
         $account = $accounts->where('paypalId', $email)->first();
         if ( empty($account) ) {
-            $account = $accounts[0];
+            $account = $accounts->last();
         }
         return $account["payeeDisbursementAccountId"];
     }
