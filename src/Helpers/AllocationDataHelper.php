@@ -3,6 +3,7 @@
 namespace Unbank\Kyckglobal\Helpers;
 
 use Unbank\Kyckglobal\AllocationWithAccount;
+use Unbank\Kyckglobal\Exceptions\FinancialAccountNotFound;
 use Unbank\Kyckglobal\Payee;
 
 class AllocationDataHelper {
@@ -60,7 +61,13 @@ class AllocationDataHelper {
 
         $account = $accounts->where('paypalId', $phone_number)->first();
         if ( empty($account) ) {
-            $account = $accounts->last();
+            // $account = $accounts->last();
+            $user = $this->payee->user->name;
+            $payee_id = $this->payee->payee_id;
+            throw new FinancialAccountNotFound(
+                "Kyck Venmo Account ($phone_number): not found for Payee $payee_id that is associated with $user->name ($user->phone_number_base)",
+                1004
+            );
         }
         return $account["payeeDisbursementAccountId"];
     }
@@ -80,7 +87,13 @@ class AllocationDataHelper {
 
         $account = $accounts->where('paypalId', $email)->first();
         if ( empty($account) ) {
-            $account = $accounts->last();
+            // $account = $accounts->last();
+            $user = $this->payee->user->name;
+            $payee_id = $this->payee->payee_id;
+            throw new FinancialAccountNotFound(
+                "Kyck PayPal Account ($email): not found for Payee $payee_id that is associated with $user->name ($user->phone_number_base)",
+                1004
+            );
         }
         return $account["payeeDisbursementAccountId"];
     }
@@ -101,7 +114,13 @@ class AllocationDataHelper {
 
         $account = $accounts->where('tokenReferenceID', $tokenReferenceID)->first();
         if ( empty($account) ) {
-            $account = $accounts->last();
+            // $account = $accounts->last();
+            $user = $this->payee->user->name;
+            $payee_id = $this->payee->payee_id;
+            throw new FinancialAccountNotFound(
+                "Kyck PushToCard Account ($tokenReferenceID): not found for Payee $payee_id that is associated with $user->name ($user->phone_number_base)",
+                1004
+            );
         }
         return $account["payeeDisbursementAccountId"];
     }
