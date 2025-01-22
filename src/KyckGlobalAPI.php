@@ -512,7 +512,6 @@ class KyckGlobalAPI
             CURLOPT_HTTPHEADER => array(
                 'Authorization: ' . $this->token,
                 'Content-Type: application/json',
-                // 'Cookie: AWSALB=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b; AWSALBCORS=XBAdDXPm5iCFwDLIlkNu5kCvnf3t0j84R29IB8zO0xi/bS4DnGyqX/KMK7Bo7Scjxixkdw+dbKREgvS7hkdDrLxiyNFzcimZYw+tRSYGe/hZrTZ43W/7NPA993/b'
             ),
         ));
 
