@@ -14,14 +14,18 @@ class KyckTransactionRejected
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public $transaction;
+    public array $context;
+
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(public $transaction, public ...$context)
+    public function __construct($transaction, ...$context)
     {
         $this->transaction = $transaction;
+        $this->context = $context;
     }
 
 }
