@@ -3,9 +3,9 @@
 namespace Unbank\Kyckglobal;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Osoobe\Utilities\Helpers\Utilities;
 use Unbank\Kyckglobal\Events\API\KyckGetCashoutLocationAPIError;
+use Unbank\Kyckglobal\Events\PayeeAchAccountsUpdated;
 use Unbank\Kyckglobal\Events\PayeeCreated;
 use Unbank\Kyckglobal\Events\PayeeError;
 use Unbank\Kyckglobal\Events\PayeeUpdated;
@@ -112,7 +112,7 @@ class KyckGlobalAPI
             ];
         }
 
-        if ( empty($result['success']) || !empty($result['success']) && ! $result['success'] ) {
+        if ( empty($result['success']) || (!empty($result['success']) && !$result['success'])) {
             event(new PayeeError($user, "Unable to create payee", $result));
             return [
                 false,
@@ -820,5 +820,56 @@ class KyckGlobalAPI
         return $response->json();
     }
 
+    public function updatePayeeAchAccounts($user)
+    {
+        if($user->has('achAccounts')) {
+            $payee = $user->payee;
 
+            $payeeData = [
+                'payerId' => $this->payer_id,
+                "payeeId" => $payee->payee_id,
+                'paymentTypes' => ['ach'],
+                'payeeFinancialAccounts' => $user->achAccounts->map(function ($ach){
+                    return [
+                        'routingNumber' => $ach->routing_number,
+                        'accountNumber' => $ach->account_number,
+                        'accountName' => $ach->account_name,
+                        'accountType' => $ach->account_type,
+                    ];
+                })
+            ];
+
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => $this->token
+            ])->put("$this->api_url/apis/singlePayeeUpdate", $payeeData);
+
+            $result = $response->json();
+            if (empty($result)) {
+                event(new PayeeError($user, "No result returned", $result));
+                return (object)[
+                    'status' => false,
+                    'data' => [],
+                    'response' => $result
+                ];
+            }
+
+            $result["payeeId"] = $payee->payee_id;
+            if ($result['success'] != true) {
+                event(new PayeeError($user, "Unable to update payee", $result));
+                return (object)[
+                    'status' => false,
+                    "data" => [],
+                    'response' => $result
+                ];
+            }
+
+            event(new PayeeAchAccountsUpdated($user, $payee, $result));
+
+            return (object)[
+                'status' => true,
+                'response' => $result
+            ];
+        }
+    }
 }
