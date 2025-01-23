@@ -106,6 +106,14 @@ class AllocationDataHelper {
         return collect($this->payee_data["pushToCardAccount"]);
     }
 
+
+    public function achAccounts() {
+        if ( empty($this->payee_data["payeeFinancialAccounts"]) ) {
+            return null;
+        }
+        return collect($this->payee_data["payeeFinancialAccounts"]);
+    }
+
     public function pushToCardDisbursementId(?string $tokenReferenceID) {
         $accounts = $this->pushToCardAccounts();
         if ( empty($accounts) ) {
@@ -156,7 +164,6 @@ class AllocationDataHelper {
                 }
             }
 
-
             $paypalAccounts = $this->paypalAccounts();
             if ( !empty($paypalAccounts) ) {
                 foreach ($paypalAccounts as $account) {
@@ -169,13 +176,24 @@ class AllocationDataHelper {
                 }
             }
 
-
             $pushToCardAccounts = $this->pushToCardAccounts();
             if ( !empty($pushToCardAccounts) ) {
                 foreach ($pushToCardAccounts as $account) {
                     $accounts[] = [
                         "account_type" => AllocationWithAccount::ACCOUNT_TYPE_PUSH_TO_CARD,
                         'account_number' => $account['tokenInfo']['paymentInstrument']['last4'] ?? $account['formatAccountNumber'],
+                        "disbursement_id" =>  $account["payeeDisbursementAccountId"],
+                        "allocation" => $account['allocation']
+                    ];
+                }
+            }
+
+            $achAccounts = $this->achAccounts();
+            if ( !empty($achAccounts) ) {
+                foreach ($achAccounts as $account) {
+                    $accounts[] = [
+                        "account_type" => $account['accountType'],
+                        'account_number' => $account['accountNumber'],
                         "disbursement_id" =>  $account["payeeDisbursementAccountId"],
                         "allocation" => $account['allocation']
                     ];
