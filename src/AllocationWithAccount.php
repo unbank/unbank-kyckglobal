@@ -19,6 +19,7 @@ class AllocationWithAccount extends Model
     const ACCOUNT_TYPE_PAYPAL = 'paypal';
     const ACCOUNT_TYPE_NCRPAY360 = 'ncrpay360';
     const ACCOUNT_TYPE_VENMO = 'venmo';
+    const ACCOUNT_TYPE_ACH = 'ach';
 
 
     protected $fillable = [
