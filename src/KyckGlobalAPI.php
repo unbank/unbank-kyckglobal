@@ -5,7 +5,6 @@ namespace Unbank\Kyckglobal;
 use Illuminate\Support\Facades\Http;
 use Osoobe\Utilities\Helpers\Utilities;
 use Unbank\Kyckglobal\Events\API\KyckGetCashoutLocationAPIError;
-use Unbank\Kyckglobal\Events\PayeeAchAccountsUpdated;
 use Unbank\Kyckglobal\Events\PayeeCreated;
 use Unbank\Kyckglobal\Events\PayeeError;
 use Unbank\Kyckglobal\Events\PayeeUpdated;
@@ -369,6 +368,7 @@ class KyckGlobalAPI
             "payerId" => $this->payer_id,
             "allocationWithAccountId" => $allocationWithAccountIds
         ];
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $this->token
@@ -405,7 +405,7 @@ class KyckGlobalAPI
         foreach($allocationWithAccountIds as $account_id => $allocation) {
             try {
                 $user->kyckAccounts()->accountId($account_id)->update([
-                    'allocation' => $allocation,
+                    'allocation' => $allocation['allocation'],
                     'payee_id' => $user->payee_id
                 ]);
             } catch (\Throwable $th) {

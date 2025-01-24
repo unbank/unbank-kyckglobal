@@ -262,14 +262,14 @@ class AllocationDataHelper {
      * @param Payee $payee
      * @return array
      */
-    public function updateAllocationByAccount(string $account_type, ?int $acount_id=null, int $account_allocation=0, bool $override=true): array {
+    public function updateAllocationByAccount(string $account_type, ?int $account_id=null, int $account_allocation=0, bool $override=true): array {
         foreach ($this->allocation as $account_type) {
 
             // Check allow
             if ( !empty($this->payee_data[$account_type]) ) {
                 foreach ($this->payee_data[$account_type] as $account) {
                     if ( !empty($account_id) ) {
-                        if ( $account["payeeDisbursementAccountId"] != $acount_id && $override) {
+                        if ( $account["payeeDisbursementAccountId"] != $account_id && $override) {
                             $account_allocation = 0;
                         } else {
                             $account_allocation = $account["allocation"];
