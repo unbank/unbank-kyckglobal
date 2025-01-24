@@ -81,6 +81,17 @@ class AllocationWithAccount extends Model
     }
 
     /**
+     * Scope a query to only include ach account type
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAch($query) {
+        return $query->where('account_type', static::ACCOUNT_TYPE_ACH)
+            ->where('account_id', '!=', null);
+    }
+
+    /**
      * Scope a query to only include paypal account type
      *
      * @param  \Illuminate\Database\Eloquent\Builder $query
