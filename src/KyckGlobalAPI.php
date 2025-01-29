@@ -405,7 +405,7 @@ class KyckGlobalAPI
         foreach($allocationWithAccountIds as $account_id => $allocation) {
             try {
                 $user->kyckAccounts()->accountId($account_id)->update([
-                    'allocation' => $allocation['allocation'],
+                    'allocation' => $allocation,
                     'payee_id' => $user->payee_id
                 ]);
             } catch (\Throwable $th) {

@@ -22,7 +22,6 @@ class AchAccount extends Model implements DisbursemntAccount {
         'account_number',
         'account_name',
         'account_type',
-        'disbursement_account_id',
         'data'
     ];
 
