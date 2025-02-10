@@ -349,15 +349,13 @@ trait KyckPayeeTrait {
             // ACH account info
             if ( $has_ach ) {
                 $data['paymentTypes'][] = "ach";
-                $data['payeeFinancialAccounts'] = $this->achAccounts->map(function ($ach) use($achAllocation) {
-                    return [
-                        'routingNumber' => $ach->routing_number,
-                        'accountNumber' => $ach->account_number,
-                        'accountName' => $ach->account_name,
-                        'accountType' => $ach->account_type,
-                        'allocation'=> $achAllocation
-                    ];
-                });
+                $data['payeeFinancialAccounts'] = [
+                    'routingNumber' => $this->achAccount->routing_number,
+                    'accountNumber' => $this->achAccount->account_number,
+                    'accountName' => $this->achAccount->account_name,
+                    'accountType' => $this->achAccount->account_type,
+                    'allocation'=> $achAllocation
+                ];
             }
         } catch (\Throwable $th) {
             logger($th->getMessage(), [
