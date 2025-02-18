@@ -51,6 +51,10 @@ trait KyckPayeeTrait {
         return $this->hasOne(AchAccount::class);
     }
 
+    public function achAccounts() {
+        return $this->hasMany(AchAccount::class, 'user_id', 'id');
+    }
+
     /*
      * Get all of the kyck accounts for the User
      *
@@ -342,7 +346,7 @@ trait KyckPayeeTrait {
                 $data["venmoAllocation"] = $venmoAllocation;
             }
 
-            // Venmo account info
+            // ACH account info
             if ( $has_ach ) {
                 $data['paymentTypes'][] = "ach";
                 $data['payeeFinancialAccounts'] = [
