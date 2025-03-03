@@ -106,6 +106,14 @@ class AllocationDataHelper {
         return collect($this->payee_data["pushToCardAccount"]);
     }
 
+
+    public function achAccounts() {
+        if ( empty($this->payee_data["payeeFinancialAccounts"]) ) {
+            return null;
+        }
+        return collect($this->payee_data["payeeFinancialAccounts"]);
+    }
+
     public function pushToCardDisbursementId(?string $tokenReferenceID) {
         $accounts = $this->pushToCardAccounts();
         if ( empty($accounts) ) {
@@ -156,7 +164,6 @@ class AllocationDataHelper {
                 }
             }
 
-
             $paypalAccounts = $this->paypalAccounts();
             if ( !empty($paypalAccounts) ) {
                 foreach ($paypalAccounts as $account) {
@@ -169,13 +176,24 @@ class AllocationDataHelper {
                 }
             }
 
-
             $pushToCardAccounts = $this->pushToCardAccounts();
             if ( !empty($pushToCardAccounts) ) {
                 foreach ($pushToCardAccounts as $account) {
                     $accounts[] = [
                         "account_type" => AllocationWithAccount::ACCOUNT_TYPE_PUSH_TO_CARD,
                         'account_number' => $account['tokenInfo']['paymentInstrument']['last4'] ?? $account['formatAccountNumber'],
+                        "disbursement_id" =>  $account["payeeDisbursementAccountId"],
+                        "allocation" => $account['allocation']
+                    ];
+                }
+            }
+
+            $achAccounts = $this->achAccounts();
+            if ( !empty($achAccounts) ) {
+                foreach ($achAccounts as $account) {
+                    $accounts[] = [
+                        "account_type" => $account['accountType'],
+                        'account_number' => $account['accountNumber'],
                         "disbursement_id" =>  $account["payeeDisbursementAccountId"],
                         "allocation" => $account['allocation']
                     ];
@@ -244,14 +262,14 @@ class AllocationDataHelper {
      * @param Payee $payee
      * @return array
      */
-    public function updateAllocationByAccount(string $account_type, ?int $acount_id=null, int $account_allocation=0, bool $override=true): array {
+    public function updateAllocationByAccount(string $account_type, ?int $account_id=null, int $account_allocation=0, bool $override=true): array {
         foreach ($this->allocation as $account_type) {
 
             // Check allow
             if ( !empty($this->payee_data[$account_type]) ) {
                 foreach ($this->payee_data[$account_type] as $account) {
                     if ( !empty($account_id) ) {
-                        if ( $account["payeeDisbursementAccountId"] != $acount_id && $override) {
+                        if ( $account["payeeDisbursementAccountId"] != $account_id && $override) {
                             $account_allocation = 0;
                         } else {
                             $account_allocation = $account["allocation"];
