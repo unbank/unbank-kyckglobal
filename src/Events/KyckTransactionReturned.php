@@ -15,6 +15,7 @@ class KyckTransactionReturned
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $transaction;
+    public $user;
     public array $context;
 
     /**
@@ -25,6 +26,7 @@ class KyckTransactionReturned
     public function __construct($transaction, ...$context)
     {
         $this->transaction = $transaction;
+        $this->user = $this->transaction?->user;
         $this->context = $context;
     }
 

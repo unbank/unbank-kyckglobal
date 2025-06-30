@@ -17,6 +17,7 @@ class KyckTransactionCompleted
 
     public $transaction;
     public $context;
+    public $user;
 
     /**
      * Create a new event instance.
@@ -26,6 +27,7 @@ class KyckTransactionCompleted
     public function __construct($transaction, ...$context)
     {
         $this->transaction = $transaction;
+        $this->user = $this->transaction?->user;
         $this->context = $context;
     }
 
