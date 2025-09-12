@@ -19,6 +19,7 @@ class KyckTransactionError
     public $transaction;
     public $message;
     public $context;
+    public $user;
 
     /**
      * Create a new event instance.
@@ -28,6 +29,7 @@ class KyckTransactionError
     public function __construct(Transaction $transaction, string $message, ...$context)
     {
         $this->transaction = $transaction;
+        $this->user = $this->transaction?->user;
         $this->message = $message;
         $this->context = $context;
     }

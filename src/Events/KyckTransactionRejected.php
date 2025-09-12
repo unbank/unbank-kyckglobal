@@ -16,6 +16,7 @@ class KyckTransactionRejected
 
     public $transaction;
     public array $context;
+    public $user;
 
     /**
      * Create a new event instance.
@@ -25,6 +26,7 @@ class KyckTransactionRejected
     public function __construct($transaction, ...$context)
     {
         $this->transaction = $transaction;
+        $this->user = $this->transaction?->user;
         $this->context = $context;
     }
 

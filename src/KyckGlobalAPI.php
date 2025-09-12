@@ -2,7 +2,10 @@
 
 namespace Unbank\Kyckglobal;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Osoobe\Laravel\Settings\Models\AppMeta;
 use Osoobe\Utilities\Helpers\Utilities;
 use Unbank\Kyckglobal\Events\API\KyckGetCashoutLocationAPIError;
 use Unbank\Kyckglobal\Events\PayeeCreated;
@@ -19,6 +22,7 @@ class KyckGlobalAPI
     protected $payer_name;
     protected $token = '';
     protected $username;
+    protected $auth_cache_name = 'kyckglobal_auth';
 
     public function __construct(
         string $username,
@@ -33,9 +37,52 @@ class KyckGlobalAPI
         $this->api_url = $api_url;
         $this->payer_name = $payer_name;
         $this->payer_id = $payer_id;
+        $this->auth_cache_name = "kyckglobal_auth_{$this->payer_id}";
+
         if ($auth) {
             $this->auth();
         }
+    }
+
+
+    /**
+     * KyckGlobal Authentication Request
+     *
+     * @return \Illuminate\Http\Client\Response
+     */
+    public function authRequest() {
+        return Http::withHeaders([
+            'Content-Type' => 'application/json'
+        ])->post("$this->api_url/apis/userAuth", [
+            'email' => $this->username,
+            'password' => $this->password
+        ]);
+    }
+
+    protected function isResponseUnauthorized($response) {
+        // Check if the response is unauthorized
+        if ( $response->status() === 401 || $response->status() === 403 ) {
+            $this->clearCache();
+            Log::error("KyckGlobalAPI: Unauthorized access. Clearing cache and re-authenticating.");
+            return true;
+        }
+    }
+
+    public function clearCache() {
+        // Clear the auth cache
+        info("KyckGlobalAPI: Clearing auth cache for {$this->auth_cache_name}.");
+        Cache::forget($this->auth_cache_name);
+        // $this->token = '';
+        // $this->auth_data = null;
+    }
+
+    protected function cacheAuthData() {
+        // Cache the auth data in seconds
+        $expires_in_seconds = config('kyckglobal.auth_cache_in_seconds', 1800);
+        $this->auth_data = Cache::remember($this->auth_cache_name, $expires_in_seconds, function () {
+            info("KyckGlobalAPI: Caching auth data for {$this->auth_cache_name}.");
+            return $this->authRequest()->json();
+        });
     }
 
 
@@ -46,17 +93,18 @@ class KyckGlobalAPI
      */
     public function auth()
     {
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json'
-        ])->post("$this->api_url/apis/userAuth", [
-            'email' => $this->username,
-            'password' => $this->password
-        ]);
-
-        $this->auth_data = $response->json();
+        // Remember the auth data for 60 minutes
         try {
+            $this->cacheAuthData();
             if ( $this->auth_data['success'] ) {
                 $this->token = $this->auth_data['token'];
+            } else {
+                // If the auth data is not successful, clear the cache and re-authenticate
+                $this->clearCache();
+                $this->cacheAuthData();
+                if ( $this->auth_data['success'] ) {
+                    $this->token = $this->auth_data['token'];
+                }
             }
             $status = $this->auth_data['success'];
         } catch (\Throwable $th) {
