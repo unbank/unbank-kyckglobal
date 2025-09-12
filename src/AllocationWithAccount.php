@@ -19,6 +19,7 @@ class AllocationWithAccount extends Model
     const ACCOUNT_TYPE_PAYPAL = 'paypal';
     const ACCOUNT_TYPE_NCRPAY360 = 'ncrpay360';
     const ACCOUNT_TYPE_VENMO = 'venmo';
+    const ACCOUNT_TYPE_ACH = 'ach';
 
 
     protected $fillable = [
@@ -76,6 +77,17 @@ class AllocationWithAccount extends Model
      */
     public function scopePushToCard($query) {
         return $query->where('account_type', static::ACCOUNT_TYPE_PUSH_TO_CARD)
+            ->where('account_id', '!=', null);
+    }
+
+    /**
+     * Scope a query to only include ach account type
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAch($query) {
+        return $query->where('account_type', static::ACCOUNT_TYPE_ACH)
             ->where('account_id', '!=', null);
     }
 

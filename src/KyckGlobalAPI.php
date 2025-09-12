@@ -159,7 +159,7 @@ class KyckGlobalAPI
             ];
         }
 
-        if ( empty($result['success']) || !empty($result['success']) && ! $result['success'] ) {
+        if ( empty($result['success']) || (!empty($result['success']) && !$result['success'])) {
             event(new PayeeError($user, "Unable to create payee", $result));
             return [
                 false,
@@ -416,6 +416,7 @@ class KyckGlobalAPI
             "payerId" => $this->payer_id,
             "allocationWithAccountId" => $allocationWithAccountIds
         ];
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $this->token
@@ -451,10 +452,17 @@ class KyckGlobalAPI
         // Update locations
         foreach($allocationWithAccountIds as $account_id => $allocation) {
             try {
-                $user->kyckAccounts()->accountId($account_id)->update([
-                    'allocation' => $allocation,
-                    'payee_id' => $user->payee_id
-                ]);
+                if(is_array($allocation)){
+                    $user->kyckAccounts()->accountId($allocation['payeeDisbursementAccountId'])->update([
+                        'allocation' => $allocation['allocation'],
+                        'payee_id' => $user->payee_id
+                    ]);
+                }else {
+                    $user->kyckAccounts()->accountId($account_id)->update([
+                        'allocation' => $allocation,
+                        'payee_id' => $user->payee_id
+                    ]);
+                }
             } catch (\Throwable $th) {
                 logger("Unbank Kyck Account Not Found ".$th->getMessage());
             }
@@ -866,6 +874,4 @@ class KyckGlobalAPI
 
         return $response->json();
     }
-
-
 }
