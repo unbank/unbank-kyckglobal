@@ -419,8 +419,33 @@ trait KyckPayeeTrait {
         );
     }
 
+    /**
+     * Get data that is used to update the payee account
+     *
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1singlePayeeUpdate/put
+     * @return array
+     */
+    public function getKyckPayeeAchAccountsUpdateData() {
+        $payee = $this->getOrCreatePayee();
+        $data = [
+            "payeeId" => $payee->payee_id,
+        ];
+
+        $data['paymentTypes'][] = "ach";
+
+        $achAccounts = $this->achAccounts->map(function ($achAccount) {
+            return [
+                'routingNumber' => $achAccount->routing_number,
+                'accountNumber' => $achAccount->account_number,
+                'accountName' => $achAccount->account_name,
+                'accountType' => $achAccount->account_type,
+                'allocation' => 0,
+            ];
+        })->toArray();
+
+        $data['payeeFinancialAccounts'] = $achAccounts;
+
+        return $data;
+    }
 
 }
-
-
-?>

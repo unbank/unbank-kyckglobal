@@ -30,7 +30,7 @@ class KyckGlobalAPI
         string $api_url = "https://api.kyckglobal.com",
         string $payer_name = '',
         string $payer_id = '',
-        $auth = true
+               $auth = true
     ) {
         $this->username = $username;
         $this->password = $password;
@@ -198,6 +198,61 @@ class KyckGlobalAPI
         $payeeData = $user->getKyckPayeeUpdateData();
 
         $payeeData["payerId"] = $this->payer_id;
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->put("$this->api_url/apis/singlePayeeUpdate", $payeeData);
+
+        $result = $response->json();
+        if ( empty($result) ) {
+            event(new PayeeError($user, "No result returned", $result));
+            return (object) [
+                'status' => false,
+                'data' => [],
+                'response' => $result
+            ];
+        }
+
+        $result["payeeId"] = $user->payee->payee_id;
+        if ($result['success'] != true) {
+            event(new PayeeError($user, "Unable to update payee", $result));
+            return (object) [
+                'status' => false,
+                "data" => [],
+                'response' => $result
+            ];
+        }
+
+        $payee = Payee::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                "service_provider" => 'kyck',
+                "is_active" => 1,
+                "verified" => 1
+            ]
+        );
+        event(new PayeeUpdated($user, $payee, $result));
+        return (object) [
+            'status' => true,
+            'data' => $payee,
+            'response' => $result
+        ];
+    }
+
+    /**
+     * Update Payee ACH accounts
+     *
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1singlePayeeUpdate/put
+     *
+     * @param \App\Models\User $user
+     * @return object   Keys: status, data, result
+     */
+    public function updatePayeeAchAccounts($user, $achAccount = null)
+    {
+        $payeeData = $user->getKyckPayeeAchAccountsUpdateData();
+
+        $payeeData["payerId"] = $this->payer_id;
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $this->token
@@ -683,17 +738,17 @@ class KyckGlobalAPI
     public function sendGetRequest($path) {
         $curl = curl_init();
         curl_setopt_array($curl, array(
-        CURLOPT_URL => "$this->api_url/$path",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-        CURLOPT_HTTPHEADER => array(
-            'Authorization: ' . $this->token
-        ),
+            CURLOPT_URL => "$this->api_url/$path",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: ' . $this->token
+            ),
         ));
         $response = curl_exec($curl);
         curl_close($curl);
@@ -741,8 +796,8 @@ class KyckGlobalAPI
      * @return array                    Returns the json response for the KyckGlobal API Endpoint.
      */
     public function getPayerPayments(): array {
-            $data = $this->sendGetRequest("apis/getAllPayments/$this->payer_id");
-            return $data;
+        $data = $this->sendGetRequest("apis/getAllPayments/$this->payer_id");
+        return $data;
     }
 
 
