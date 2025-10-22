@@ -108,6 +108,12 @@ trait KyckPayeeTrait {
                         ->performedOn($payee)
                         ->withProperties($changes)
                         ->log("Payee account was created");
+                }else{
+                    $payeeId = $payee['errorList'][0]['payeeId'] ?? null;
+                    if($payeeId){
+                        $payee = KyckGlobal::getAndStorePayeeById($user, $payeeId);
+                        return $payee;
+                    }
                 }
             }
 
@@ -129,6 +135,7 @@ trait KyckPayeeTrait {
             }
             return $payee;
         }
+
         return $this->payee;
     }
 

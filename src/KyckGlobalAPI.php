@@ -549,6 +549,37 @@ class KyckGlobalAPI
 
 
     /**
+     * Get payee data by payee id
+     *
+     * @see https://developer.kyckglobal.com/api/#/paths/~1apis~1getPayeeById~1{{PayeeId}}/get
+     *
+     * @param Payee $payee
+     * @return array
+     */
+    public function getAndStorePayeeById($user, $payeeId) {
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->token
+        ])->get("$this->api_url/apis/getPayeeById/$payeeId");
+        $result = $response->json()['data'];
+
+        $payee = Payee::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                "payee_id" => $result["payeeId"],
+                'email' => $result['payeeEmail'] ?? null,
+                "data" => $result,
+                "service_provider" => 'kyck',
+                "is_active" => 1,
+                "verified" => 1
+            ]
+        );
+
+        return $payee;
+    }
+
+
+    /**
      * Get payees
      *
      * @return array
