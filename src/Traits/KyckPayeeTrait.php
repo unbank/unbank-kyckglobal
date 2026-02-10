@@ -378,25 +378,18 @@ trait KyckPayeeTrait {
      * @param array|null $account_with_allocation, key:value pair maps to account_id:allocation
      * @return array
      */
-    public function generateAllocationWithAccountIds(?array $account_with_allocation = []) {
-        $accounts = $this->kyckAccounts()
+    public function generateAllocationWithAccountIds(?array $account_with_allocation = []): array
+    {
+        return $this->kyckAccounts()
             ->payeeId($this->payee_id)
-            ->get();
-
-        $allocations = [];
-        foreach($accounts as $account) {
-            $default_allocation = 0;
-            if ( !empty($account_with_allocation[$account->account_id]) ) {
-                $default_allocation = $account_with_allocation[$account->account_id];
-            }
-
-            $allocations[] = [
-                "payeeDisbursementAccountId" => $account->account_id,
-                "allocation" =>  $default_allocation
-            ];
-        }
-
-        return $allocations;
+            ->get()
+            ->keyBy('account_id')
+            ->map(fn ($account) => [
+                'payeeDisbursementAccountId' => $account->account_id,
+                'allocation' => $account_with_allocation[$account->account_id] ?? 0,
+            ])
+            ->values()
+            ->all();
     }
 
 
