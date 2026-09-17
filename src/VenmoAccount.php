@@ -4,6 +4,7 @@ namespace Unbank\Kyckglobal;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Osoobe\LaravelTraits\Support\BelongsToUser;
 use Osoobe\LaravelTraits\Support\HasPhoneNumber;
 use Osoobe\LaravelTraits\Support\IsDefault;
@@ -16,6 +17,7 @@ class VenmoAccount extends Model implements DisbursemntAccount
     use HasFactory;
     use HasKyckAccountAllocation;
     use IsDefault;
+    use SoftDeletes;
     use HasPhoneNumber;
 
     protected $fillable = [

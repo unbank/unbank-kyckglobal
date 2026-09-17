@@ -4,6 +4,7 @@ namespace Unbank\Kyckglobal;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Osoobe\LaravelTraits\Support\BelongsToUser;
 use Osoobe\LaravelTraits\Support\IsDefault;
 use Unbank\Kyckglobal\Contract\DisbursemntAccount;
@@ -15,6 +16,7 @@ class PayPalAccount extends Model implements DisbursemntAccount
     use HasFactory;
     use HasKyckAccountAllocation;
     use IsDefault;
+    use SoftDeletes;
 
     protected $table = "paypal_accounts";
 
